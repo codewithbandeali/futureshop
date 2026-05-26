@@ -6,20 +6,21 @@ return [
     |--------------------------------------------------------------------------
     | Cross-Origin Resource Sharing (CORS) Configuration
     |--------------------------------------------------------------------------
-    |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or "CORS". This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
-    |
-    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-    |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout', 'register'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    /*
+     | When `supports_credentials` is true, browsers reject `*` here. Drive the
+     | list from FRONTEND_URL (comma-separated for multi-environment setups).
+     | Falls back to common local development origins.
+     */
+    'allowed_origins' => array_filter(array_map('trim', explode(',', env(
+        'FRONTEND_URL',
+        'http://localhost:3000,http://127.0.0.1:3000'
+    )))),
 
     'allowed_origins_patterns' => [],
 

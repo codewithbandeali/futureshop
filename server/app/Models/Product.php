@@ -11,13 +11,22 @@ class Product extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'description',
         'price',
+        'mrp',
+        'stock',
         'category',
         'brand',
         'shipping',
         'sku',
         'colors'
+    ];
+
+    protected $casts = [
+        'shipping' => 'boolean',
+        'price' => 'decimal:2',
+        'mrp' => 'decimal:2',
     ];
 
 
@@ -31,5 +40,13 @@ class Product extends Model
         return $this->hasOne(Thumbnail::class);
     }
 
+    public function ratings(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Rating::class);
+    }
 
+    public function getInStockAttribute(): bool
+    {
+        return (int) $this->stock > 0;
+    }
 }

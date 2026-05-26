@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel an in-flight run if a newer commit is pushed to the same PR/branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Laravel (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1']
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, intl, pdo_sqlite, sqlite3, gd
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: server/vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('server/composer.lock') }}
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+
+      - name: Run tests
+        run: vendor/bin/phpunit --colors=never
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+
+  frontend:
+    name: Next.js (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['20']
+    defaults:
+      run:
+        working-directory: client-next
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: client-next/package-lock.json
+
+      # Use `npm install` instead of `ci` because the repo doesn't ship a
+      # package-lock.json yet (the scaffold hasn't been installed locally).
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Test
+        run: npm test --if-present
+
+      - name: Build
+        run: npm run build
+        env:
+          # Production build needs a non-empty API URL so rewrites resolve.
+          API_URL: http://localhost:8000
+          NEXT_PUBLIC_API_URL: /backend
+          NEXT_PUBLIC_SITE_URL: https://futureshop.example

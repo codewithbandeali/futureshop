@@ -2,149 +2,152 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreProductRequest;
-use App\Http\Requests\UpdateProductRequest;
+use App\Http\Resources\ProductResource;
 use App\Models\Image;
 use App\Models\Product;
 use App\Models\Thumbnail;
+use App\Services\CloudinaryService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use phpDocumentor\Reflection\Types\Boolean;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function index(): \Illuminate\Http\JsonResponse
+    public function __construct(private CloudinaryService $cloudinary)
     {
-        // get all products
-        $products = Product::select('products.*', 'thumbnails.thumbnail')
-            ->join('thumbnails', 'products.id', '=', 'thumbnails.product_id')
+    }
+
+    public function index(): JsonResponse
+    {
+        $products = Product::with(['images', 'ratings'])
+            ->leftJoin('thumbnails', 'products.id', '=', 'thumbnails.product_id')
+            ->select('products.*', 'thumbnails.thumbnail')
             ->get();
 
-        return response()->json($products);
-
+        return ProductResource::collection($products)->response();
     }
 
-
+    public function getProduct($id): JsonResponse
+    {
+        $product = Product::with(['images', 'ratings'])->find($id);
+        if (!$product) {
+            return response()->json(['message' => "No Product with the ID: {$id}"], 404);
+        }
+        return (new ProductResource($product))->response();
+    }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  StoreProductRequest  $request
-     * @return Response
+     * Admin: create a product. Uploads to Cloudinary in a single transaction
+     * so a failed image upload doesn't leave an orphan row behind.
      */
-    public function store(Request $request): Response
+    public function store(Request $request): JsonResponse
     {
-        // validate request data
         $fields = $request->validate([
-            'name' => 'required|string',
+            'name' => 'required|string|max:255',
             'description' => 'required|string',
-            'price' => 'required',
+            'price' => 'required|numeric|min:0',
+            'mrp' => 'nullable|numeric|min:0',
+            'stock' => 'required|integer|min:0',
             'category' => 'required|string',
             'brand' => 'required|string',
-            'shipping' => 'boolean',
-            // 'colors' => 'string',
-            'sku' => 'string',
-            // 'thumbnail' => 'required|image'
+            'shipping' => 'sometimes|boolean',
+            'sku' => 'nullable|string|max:64',
+            'thumbnail' => 'sometimes|image|max:5120', // 5 MB
+            'images.*' => 'sometimes|image|max:5120',
         ]);
 
+        $fields['slug'] = Str::slug($fields['name']) . '-' . Str::lower(Str::random(4));
+        $fields['shipping'] = $fields['shipping'] ?? true;
 
-        // get the request images
-        if ($request->has('images')) {
-
-            $baseUrl = env('APP_URL', 'http://localhost:8000') . '/storage/';
-            // store the data in the products table
+        $product = DB::transaction(function () use ($request, $fields) {
             $product = Product::create($fields);
-            $id = $product->id;
 
-            // store the thumbnail in s3
-            $thumbnail = $request->file('thumbnail');
-            $tnName = $id.'_thumbnail_'.time().rand(1, 1000).'.'.$thumbnail->extension();
-            $path = $thumbnail->storeAs('uploads/products/' . $id, $tnName, 'public'); //
-            // store the thumbnail in thumbnails table
-            $t = new Thumbnail();
-            $t->product_id = $id;
-            $t->thumbnail = $baseUrl . $path;
-            $t->save();
-            // store the thumbnail in images table
-            $image = new Image();
-            $image->product_id = $id;
-            $image->image = $baseUrl . $path;
-            $image->save();
-
-
-            $images = $request->file('images');
-
-            // loop through the images
-            foreach($images as $image) {
-                // // store the data in the products table
-                // $product = Product::create($fields);
-
-                $imageName= $id.'_image_'.time().rand(1,1000).'.'.$image->extension();
-
-                // store the images in s3
-                $path = $image->storeAs('uploads/products/' . $id, $imageName, 'public'); //
-                // store the images in the images table
-                $newImage = new Image();
-                $newImage->product_id = $id;
-                $newImage->image = $baseUrl . $path;
-                $newImage->save();
+            // Thumbnail
+            if ($request->hasFile('thumbnail')) {
+                $upload = $this->cloudinary->upload($request->file('thumbnail'));
+                Thumbnail::create([
+                    'product_id' => $product->id,
+                    'thumbnail' => $upload['url'],
+                ]);
+                Image::create([
+                    'product_id' => $product->id,
+                    'image' => $upload['url'],
+                ]);
             }
-        }
 
-        $response = [
-            'message' => 'Product created'
-        ];
+            // Additional images
+            if ($request->hasFile('images')) {
+                foreach ((array) $request->file('images') as $file) {
+                    $upload = $this->cloudinary->upload($file);
+                    Image::create([
+                        'product_id' => $product->id,
+                        'image' => $upload['url'],
+                    ]);
+                }
+            }
 
-        return response($response, 201);
+            return $product->fresh(['images', 'ratings']);
+        });
 
-    }
-
-
-    // GET a Single Product Function
-    public function getProduct($id) {
-        $product = Product::find($id);
-        if (!$product){
-            return response([
-                'message' => 'No Product with the ID: '.$id
-            ], 401);
-        }
-        // $images = $product->images;
-        $product->images;
-        return response($product, 200);
-    }
-
-
-
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  UpdateProductRequest  $request
-     * @param Product $product
-     * @return Response
-     */
-    public function update(Request $request): bool
-    {
-        return Product::find($request->id)->update($request->all());
-
+        return (new ProductResource($product))->response()->setStatusCode(201);
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param $id
-     * @return int
+     * Admin: update a product. Image uploads are additive — existing images
+     * stay unless explicitly cleared via /api/products/{id}/images/{imageId}.
      */
-    public function destroy($id): int
+    public function update(Request $request, $id): JsonResponse
     {
-        return Product::destroy($id);
+        $product = Product::findOrFail($id);
 
+        $fields = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'description' => 'sometimes|string',
+            'price' => 'sometimes|numeric|min:0',
+            'mrp' => 'nullable|numeric|min:0',
+            'stock' => 'sometimes|integer|min:0',
+            'category' => 'sometimes|string',
+            'brand' => 'sometimes|string',
+            'shipping' => 'sometimes|boolean',
+            'sku' => 'nullable|string|max:64',
+            'thumbnail' => 'sometimes|image|max:5120',
+            'images.*' => 'sometimes|image|max:5120',
+        ]);
+
+        DB::transaction(function () use ($request, $fields, $product) {
+            $product->update($fields);
+
+            if ($request->hasFile('thumbnail')) {
+                $upload = $this->cloudinary->upload($request->file('thumbnail'));
+                Thumbnail::updateOrCreate(
+                    ['product_id' => $product->id],
+                    ['thumbnail' => $upload['url']]
+                );
+            }
+
+            if ($request->hasFile('images')) {
+                foreach ((array) $request->file('images') as $file) {
+                    $upload = $this->cloudinary->upload($file);
+                    Image::create([
+                        'product_id' => $product->id,
+                        'image' => $upload['url'],
+                    ]);
+                }
+            }
+        });
+
+        $product->load(['images', 'ratings']);
+        return (new ProductResource($product))->response();
+    }
+
+    public function destroy($id): JsonResponse
+    {
+        $product = Product::findOrFail($id);
+        // Cloudinary cleanup is best-effort; we don't store public_ids on Image
+        // rows yet, so we just drop the local rows. Add a migration if you
+        // want to track public_ids and delete the assets too.
+        $product->delete();
+        return response()->json(['message' => 'Product deleted']);
     }
 }

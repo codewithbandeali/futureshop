@@ -1,45 +1,66 @@
 <?php
 
+use App\Http\Controllers\AddressController;
+use App\Http\Controllers\ApiRequestController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\RatingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ApiRequestController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
 */
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
-// Auth APIs
+// Auth
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
-Route::middleware('auth:sanctum')->get('/request-counts', [ApiRequestController::class, 'getRequestCounts']);
 
-
-// Products APIs
+// Public product catalog
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'getProduct']);
-Route::middleware(['auth:sanctum', 'log.api.request'])->group(function () {
+Route::get('/products/{id}/ratings', [RatingController::class, 'index']);
 
+// Authenticated customer routes
+Route::middleware('auth:sanctum')->group(function () {
+    // Addresses
+    Route::get('/address', [AddressController::class, 'index']);
+    Route::post('/address', [AddressController::class, 'store']);
+    Route::delete('/address/{id}', [AddressController::class, 'destroy']);
+
+    // Orders
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::post('/orders', [OrderController::class, 'store']);
+
+    // Ratings (write)
+    Route::post('/products/{id}/ratings', [RatingController::class, 'store']);
+
+    // Internal
+    Route::get('/request-counts', [ApiRequestController::class, 'getRequestCounts']);
+});
+
+// Admin (auth + log middleware preserved from existing setup)
+Route::middleware(['auth:sanctum', 'log.api.request'])->group(function () {
+    // Products
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 
+    // Orders — full-shop view + status mutations
+    Route::get('/admin/orders', [OrderController::class, 'adminIndex']);
+    Route::patch('/admin/orders/{id}/status', [OrderController::class, 'updateStatus']);
+
+    // Customers
+    Route::get('/admin/customers', [CustomerController::class, 'index']);
+    Route::get('/admin/customers/{id}', [CustomerController::class, 'show']);
 });
-
-
-
-// Route::post('/postProducts', [ProductController::class, 'postProducts']);
-

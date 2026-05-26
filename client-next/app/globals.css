@@ -1,0 +1,225 @@
+@import "tailwindcss";
+
+/* =============================================================================
+ * Design tokens — see SKILLS.md (2026 e-commerce reference)
+ * Tailwind 4 exposes these to utilities via @theme; you can use them as
+ * `text-[var(--text-3xl)]` or via the @theme-derived utility classes.
+ * =============================================================================
+ */
+
+@theme {
+    /* Type scale (SKILLS.md §2) */
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+    --text-4xl: 2.25rem;
+    --text-5xl: 3rem;
+    --text-6xl: 3.75rem;
+
+    /* Spacing scale (SKILLS.md §4) */
+    --spacing-1: 0.25rem;
+    --spacing-2: 0.5rem;
+    --spacing-3: 0.75rem;
+    --spacing-4: 1rem;
+    --spacing-5: 1.25rem;
+    --spacing-6: 1.5rem;
+    --spacing-8: 2rem;
+    --spacing-10: 2.5rem;
+    --spacing-12: 3rem;
+    --spacing-16: 4rem;
+    --spacing-20: 5rem;
+    --spacing-24: 6rem;
+
+    /* Brand & accent (SKILLS.md §3) — one dominant, one accent, neutrals */
+    --color-brand: #1a1a2e;
+    --color-accent: #e94560;
+    --color-accent-soft: #fee9ee;
+
+    /* Neutrals — warm off-whites instead of pure white/black */
+    --color-surface: #f8f7f4;
+    --color-surface-2: #f0ede8;
+    --color-border: #e8e4dd;
+    --color-text-1: #1a1a1a;
+    --color-text-2: #6b6b6b;
+    --color-text-3: #9b9b9b;
+
+    /* Semantic */
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+    --color-danger: #ef4444;
+
+    /* Font families — wire to next/font in app/layout.jsx for real loading */
+    --font-display: "Fraunces", "DM Serif Display", serif;
+    --font-sans: "DM Sans", "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
+}
+
+@layer base {
+    /* Restrained body baseline */
+    html {
+        color: var(--color-text-1);
+        background: var(--color-surface);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    body {
+        font-family: var(--font-sans);
+        font-size: var(--text-base);
+        line-height: 1.5;
+    }
+
+    /* Headings: tighter line-height, tighter letter-spacing for premium feel */
+    h1, h2, h3, h4 {
+        font-family: var(--font-display);
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        color: var(--color-text-1);
+    }
+
+    h1 { font-size: var(--text-5xl); }
+    h2 { font-size: var(--text-3xl); }
+    h3 { font-size: var(--text-2xl); }
+    h4 { font-size: var(--text-xl); }
+
+    /* Body line-length cap, per SKILLS.md §2 */
+    p {
+        max-width: 65ch;
+    }
+
+    /* Focus states always visible (a11y baseline §11) */
+    :focus-visible {
+        outline: 2px solid var(--color-brand);
+        outline-offset: 2px;
+    }
+
+    button {
+        cursor: pointer;
+    }
+}
+
+@layer components {
+    /* Primary CTA — SKILLS.md §5.6 */
+    .btn-primary {
+        background: var(--color-accent);
+        color: white;
+        padding: 14px 32px;
+        border-radius: 6px;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        border: none;
+    }
+    .btn-primary:hover {
+        background: color-mix(in srgb, var(--color-accent) 85%, black);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px color-mix(in srgb, var(--color-accent) 30%, transparent);
+    }
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        border: 1.5px solid var(--color-text-1);
+        color: var(--color-text-1);
+        padding: 13px 31px;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+    .btn-secondary:hover {
+        background: var(--color-text-1);
+        color: white;
+    }
+
+    /* Form input — SKILLS.md §5.7 */
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1.5px solid var(--color-border);
+        border-radius: 6px;
+        font-size: 0.9375rem;
+        color: var(--color-text-1);
+        background: white;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+    }
+    .form-input:focus {
+        border-color: var(--color-brand);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 8%, transparent);
+    }
+
+    /* Hero-section image carousel scroll, preserved from GoCart */
+    @keyframes marqueeScroll {
+        0% { transform: translateX(0%); }
+        100% { transform: translateX(-50%); }
+    }
+
+    /* Skeleton loader — SKILLS.md §6 says use skeletons not spinners */
+    .skeleton {
+        background: linear-gradient(
+            90deg,
+            var(--color-surface-2) 0%,
+            var(--color-border) 50%,
+            var(--color-surface-2) 100%
+        );
+        background-size: 200% 100%;
+        animation: skeleton-pulse 1.4s ease-in-out infinite;
+        border-radius: 4px;
+    }
+    @keyframes skeleton-pulse {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* Product card baseline — SKILLS.md §5.3 */
+    .product-card {
+        background: white;
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                    box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    }
+}
+
+@layer utilities {
+    /* Per SKILLS.md — respect prefers-reduced-motion */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Screen-reader-only helper — SKILLS.md §11 */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+}
