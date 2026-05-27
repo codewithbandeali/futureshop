@@ -142,7 +142,17 @@ The Next.js dev server rewrites `/backend/*` → `http://localhost:8000/*` so cl
 - **API client**: `lib/api.js` adds `Authorization: Bearer <token>` from `localStorage.auth_token` (Sanctum-compatible).
 - **DataInitializer** unwraps Laravel's `{ data: [...] }` envelope and only calls `/api/address` when a token exists, so anonymous visitors aren't blocked by 401s.
 
-### 3.4 Multi-vendor pieces removed (since this is single-vendor)
+### 3.4 Branding decisions (what was ported from `client/`, what changed)
+
+| Asset | Original (`client/`) | `client-next/` |
+|---|---|---|
+| Favicon | `client/public/favicon.ico` | ✅ ported (was GoCart's by mistake — fixed) |
+| Logo (shopping bag SVG) | `client/src/assets/logo.svg` | ✅ copied to `client-next/assets/logo.svg` — not used in Navbar yet; current Navbar uses text-only `FutureShop.` for cleaner scaling |
+| Brand colors | `#243E8B` navy + `#FFB81C` yellow | **Deliberately changed** to `#1a1a2e` brand + `#e94560` accent per SKILLS.md §3 (one brand + one accent is the 2026 spec; the original 4-5 competing colors don't fit). To revert, edit `--color-brand` and `--color-accent` in `app/globals.css`. |
+| Hero image (`hero.jpg`) | Workshop photo | Not used — replaced with text-led hero per SKILLS.md §5.2 Pattern C. Can come back as a secondary section. |
+| PWA icons (`logo192.png`, `logo512.png`) | Default CRA placeholders | Not migrated — generate fresh ones per the new brand if you want PWA install. |
+
+### 3.5 Multi-vendor pieces removed (since this is single-vendor)
 
 - `app/store/`, `components/store/` (vendor seller dashboards)
 - `app/(public)/create-store/`, `app/(public)/pricing/` (vendor signup + pricing)
