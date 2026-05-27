@@ -28,11 +28,18 @@ class ProductController extends Controller
         return ProductResource::collection($products)->response();
     }
 
-    public function getProduct($id): JsonResponse
+    public function getProduct($idOrSlug): JsonResponse
     {
-        $product = Product::with(['images', 'ratings'])->find($id);
+        // SEO-friendly URLs use the slug; the admin still links by numeric ID.
+        // Accept either so `/api/products/dell-xps-13-2024` and `/api/products/1`
+        // both resolve to the same product.
+        $query = Product::with(['images', 'ratings']);
+        $product = is_numeric($idOrSlug)
+            ? $query->find((int) $idOrSlug)
+            : $query->where('slug', $idOrSlug)->first();
+
         if (!$product) {
-            return response()->json(['message' => "No Product with the ID: {$id}"], 404);
+            return response()->json(['message' => "No product found for: {$idOrSlug}"], 404);
         }
         return (new ProductResource($product))->response();
     }
