@@ -1,5 +1,7 @@
 'use client'
 
+import { formatDate } from '@/lib/format'
+
 const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
 
 const STATUS_STYLES = {
@@ -22,9 +24,7 @@ const OrderItem = ({ order }) => {
                     <p className="text-xs text-[color:var(--color-text-3)]">Order</p>
                     <p className="font-medium">#{order.id}</p>
                     <p className="text-xs text-[color:var(--color-text-3)] mt-1">
-                        {order.created_at ? new Date(order.created_at).toLocaleDateString(undefined, {
-                            year: 'numeric', month: 'short', day: 'numeric'
-                        }) : ''}
+                        {formatDate(order.created_at)}
                     </p>
                 </div>
                 <div className="text-right">

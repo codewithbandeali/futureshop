@@ -7,12 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "NODE_ENV=test vitest run",
+    "test:watch": "NODE_ENV=test vitest"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
-    "@sentry/nextjs": "^9.62.0",
+    "@sentry/nextjs": "^10.54.0",
     "axios": "^1.16.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.525.0",

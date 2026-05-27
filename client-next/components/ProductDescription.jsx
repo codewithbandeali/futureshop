@@ -2,6 +2,7 @@
 
 import { Star } from "lucide-react"
 import { useState } from "react"
+import { formatDate } from "@/lib/format"
 
 const ProductDescription = ({ product }) => {
     const [selectedTab, setSelectedTab] = useState('description')
@@ -93,7 +94,7 @@ const ProductDescription = ({ product }) => {
                                         ))}
                                     </div>
                                     <p className="text-xs text-[color:var(--color-text-3)]">
-                                        {item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}
+                                        {formatDate(item.created_at)}
                                     </p>
                                 </header>
                                 <p className="text-sm text-[color:var(--color-text-1)] mt-3 leading-6">{item.review}</p>

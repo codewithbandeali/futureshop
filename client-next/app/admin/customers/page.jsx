@@ -3,6 +3,7 @@ import { Users } from "lucide-react"
 import { useEffect, useState } from "react"
 import Loading from "@/components/Loading"
 import { listCustomers } from "@/lib/admin"
+import { formatDate } from "@/lib/format"
 
 const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
 
@@ -62,7 +63,7 @@ export default function AdminCustomers() {
                                         {currency}{Number(c.lifetime_value ?? 0).toFixed(2)}
                                     </td>
                                     <td className="px-4 py-3 hidden lg:table-cell text-xs text-[color:var(--color-text-3)]">
-                                        {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
+                                        {formatDate(c.created_at) || '—'}
                                     </td>
                                 </tr>
                             ))}

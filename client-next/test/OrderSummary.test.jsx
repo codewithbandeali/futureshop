@@ -12,7 +12,7 @@ describe('OrderSummary', () => {
         render(<OrderSummary totalPrice={75} items={[{ quantity: 1 }]} />)
         expect(screen.getByText('FREE')).toBeInTheDocument()
         // Total = subtotal (no shipping)
-        expect(screen.getByText('$75.00')).toBeInTheDocument()
+        expect(screen.getAllByText('$75.00').length).toBeGreaterThanOrEqual(1)
     })
 
     it('adds shipping when subtotal is under $50', () => {

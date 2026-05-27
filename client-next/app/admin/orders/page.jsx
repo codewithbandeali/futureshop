@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import toast from "react-hot-toast"
 import { listOrders, updateOrderStatus } from "@/lib/admin"
 import Loading from "@/components/Loading"
+import { formatDate } from "@/lib/format"
 
 const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
 
@@ -114,7 +115,7 @@ export default function AdminOrders() {
                                     <td className="px-4 py-3 text-xs text-[color:var(--color-text-2)] capitalize">{o.payment_status}</td>
                                     <td className="px-4 py-3 text-right font-medium">{currency}{Number(o.total ?? 0).toFixed(2)}</td>
                                     <td className="px-4 py-3 hidden lg:table-cell text-xs text-[color:var(--color-text-3)]">
-                                        {o.created_at ? new Date(o.created_at).toLocaleDateString() : '—'}
+                                        {formatDate(o.created_at) || '—'}
                                     </td>
                                 </tr>
                             ))}

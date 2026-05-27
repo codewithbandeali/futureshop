@@ -5,6 +5,7 @@ import { categories } from "@/assets/assets"
 import { MoveLeftIcon, SearchXIcon } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useSelector } from "react-redux"
+import { dateTimestamp } from "@/lib/format"
 
 // Average rating of a product (0 when it has no reviews).
 const avgRating = (p) => {
@@ -41,7 +42,7 @@ function ShopContent() {
             if (sort === 'price-low') return a.price - b.price
             if (sort === 'price-high') return b.price - a.price
             if (sort === 'rating') return avgRating(b) - avgRating(a)
-            return new Date(b.createdAt) - new Date(a.createdAt) // newest
+            return dateTimestamp(b.created_at ?? b.createdAt) - dateTimestamp(a.created_at ?? a.createdAt) // newest
         })
     }, [products, search, category, sort])
 

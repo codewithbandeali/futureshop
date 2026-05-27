@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest'
+import React from 'react'
 import { afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 
@@ -22,6 +23,6 @@ vi.mock('next/navigation', () => ({
 vi.mock('next/image', () => ({
     default: (props) => {
         const { src, alt = '', ...rest } = props
-        return <img src={typeof src === 'string' ? src : src?.src} alt={alt} {...rest} />
+        return React.createElement('img', { src: typeof src === 'string' ? src : src?.src, alt, ...rest })
     },
 }))
