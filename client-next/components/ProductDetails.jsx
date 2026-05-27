@@ -3,10 +3,11 @@
 import { addToCart } from "@/lib/features/cart/cartSlice"
 import { CheckCircle2, CreditCard, ShieldCheck, Star, Tag, Truck } from "lucide-react"
 import Image from "next/image"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import toast from "react-hot-toast"
 import Counter from "./Counter"
+import VariantPicker, { defaultVariantSelection } from "./VariantPicker"
 
 const ProductDetails = ({ product }) => {
     const productId = product.id
@@ -20,6 +21,17 @@ const ProductDetails = ({ product }) => {
     const [zoomActive, setZoomActive] = useState(false)
     const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
 
+    // Soft variants — UI state only for now. The selection rides along to
+    // the cart toast and gets formatted for the cart line. Per-variant
+    // inventory is a follow-up (see migration comment).
+    const initialSelection = useMemo(() => defaultVariantSelection(product.options), [product.options])
+    const [variantSelection, setVariantSelection] = useState(initialSelection)
+    const hasVariants = !!initialSelection
+
+    const variantSummary = variantSelection
+        ? Object.values(variantSelection).join(' · ')
+        : null
+
     const ratingArr = Array.isArray(product.rating) ? product.rating : []
     const ratingCount = ratingArr.length
     const averageRating = ratingCount
@@ -32,7 +44,11 @@ const ProductDetails = ({ product }) => {
 
     const handleAddToCart = () => {
         dispatch(addToCart({ productId }))
-        toast.success('Added to cart')
+        if (variantSummary) {
+            toast.success(`Added ${variantSummary} to cart`)
+        } else {
+            toast.success('Added to cart')
+        }
     }
 
     const onZoomMove = (e) => {
@@ -148,6 +164,16 @@ const ProductDetails = ({ product }) => {
                         <span className="text-sm text-[color:var(--color-accent)] font-medium">Currently out of stock</span>
                     )}
                 </div>
+
+                {/* Variant selectors (chips) — only rendered if the product
+                    carries an `options` map. See VariantPicker for the shape. */}
+                {hasVariants && (
+                    <VariantPicker
+                        options={product.options}
+                        selected={variantSelection}
+                        onChange={setVariantSelection}
+                    />
+                )}
 
                 {/* SKU and meta */}
                 <dl className="grid grid-cols-2 gap-y-2 gap-x-6 mt-6 text-sm max-w-sm">

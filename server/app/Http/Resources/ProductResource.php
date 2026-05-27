@@ -41,6 +41,10 @@ class ProductResource extends JsonResource
             'stock' => (int) ($this->stock ?? 0),
             'inStock' => ((int) ($this->stock ?? 0)) > 0,
             'shipping' => (bool) $this->shipping,
+            // Soft variants — JSON map of attribute name → list of choices.
+            // Storefront renders a chip-picker per key. See the
+            // add_options_to_products_table migration for the contract.
+            'options' => $this->options ?? null,
             'images' => $imageUrls,
             'rating' => $this->whenLoaded('ratings', function () {
                 return $this->ratings->map(fn($r) => [

@@ -20,13 +20,15 @@ class Product extends Model
         'brand',
         'shipping',
         'sku',
-        'colors'
+        'colors',
+        'options',
     ];
 
     protected $casts = [
         'shipping' => 'boolean',
         'price' => 'decimal:2',
         'mrp' => 'decimal:2',
+        'options' => 'array',
     ];
 
 

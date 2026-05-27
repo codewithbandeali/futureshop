@@ -1,15 +1,15 @@
 'use client'
-import { Search, ShoppingCart, User, LogOut, Menu, X } from "lucide-react"
+import { ShoppingCart, User, LogOut, Menu, X } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { openMiniCart } from "@/lib/features/cart/cartSlice"
 import { getStoredUser, logout } from "@/lib/auth"
+import SearchAutocomplete from "./SearchAutocomplete"
 
 const Navbar = () => {
     const router = useRouter()
-    const [search, setSearch] = useState("")
     const [scrolled, setScrolled] = useState(false)
     const [mobileOpen, setMobileOpen] = useState(false)
     const [user, setUser] = useState(null)
@@ -24,13 +24,6 @@ const Navbar = () => {
         window.addEventListener("scroll", onScroll, { passive: true })
         return () => window.removeEventListener("scroll", onScroll)
     }, [])
-
-    const handleSearch = (e) => {
-        e.preventDefault()
-        if (!search.trim()) return
-        router.push(`/shop?search=${encodeURIComponent(search.trim())}`)
-        setMobileOpen(false)
-    }
 
     const handleLogout = async () => {
         await logout()
@@ -57,18 +50,7 @@ const Navbar = () => {
                     {user && <Link href="/orders" className="hover:text-[color:var(--color-accent)] transition">Orders</Link>}
                 </div>
 
-                <form onSubmit={handleSearch}
-                    className="hidden lg:flex items-center flex-1 max-w-sm bg-white border border-[color:var(--color-border)] rounded-full px-4 py-2 focus-within:border-[color:var(--color-brand)] transition">
-                    <Search size={16} className="text-[color:var(--color-text-3)]" aria-hidden="true" />
-                    <input
-                        type="search"
-                        placeholder="Search products"
-                        aria-label="Search products"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="bg-transparent outline-none text-sm ml-2 flex-1 placeholder:text-[color:var(--color-text-3)]"
-                    />
-                </form>
+                <SearchAutocomplete className="hidden lg:block flex-1 max-w-sm" />
 
                 <div className="flex items-center gap-3">
                     <button
@@ -115,12 +97,7 @@ const Navbar = () => {
 
             {mobileOpen && (
                 <div className="md:hidden border-t border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-6 py-5 space-y-4">
-                    <form onSubmit={handleSearch} className="flex items-center bg-white border border-[color:var(--color-border)] rounded-full px-4 py-2">
-                        <Search size={16} className="text-[color:var(--color-text-3)]" />
-                        <input type="search" placeholder="Search products" value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="bg-transparent outline-none text-sm ml-2 flex-1" />
-                    </form>
+                    <SearchAutocomplete onSelect={() => setMobileOpen(false)} />
                     <nav className="flex flex-col gap-3 text-sm" aria-label="Mobile navigation">
                         <Link onClick={() => setMobileOpen(false)} href="/">Home</Link>
                         <Link onClick={() => setMobileOpen(false)} href="/shop">Shop</Link>
