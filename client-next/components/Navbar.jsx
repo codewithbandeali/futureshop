@@ -3,7 +3,8 @@ import { Search, ShoppingCart, User, LogOut, Menu, X } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
+import { openMiniCart } from "@/lib/features/cart/cartSlice"
 import { getStoredUser, logout } from "@/lib/auth"
 
 const Navbar = () => {
@@ -12,6 +13,7 @@ const Navbar = () => {
     const [scrolled, setScrolled] = useState(false)
     const [mobileOpen, setMobileOpen] = useState(false)
     const [user, setUser] = useState(null)
+    const dispatch = useDispatch()
     const cartCount = useSelector(state => state.cart.total)
 
     useEffect(() => { setUser(getStoredUser()) }, [])
@@ -69,15 +71,19 @@ const Navbar = () => {
                 </form>
 
                 <div className="flex items-center gap-3">
-                    <Link href="/cart" aria-label="Cart"
-                        className="relative p-2 hover:text-[color:var(--color-accent)] transition">
+                    <button
+                        type="button"
+                        onClick={() => dispatch(openMiniCart())}
+                        aria-label={cartCount > 0 ? `Cart (${cartCount} items)` : 'Cart'}
+                        className="relative p-2 hover:text-[color:var(--color-accent)] transition"
+                    >
                         <ShoppingCart size={20} aria-hidden="true" />
                         {cartCount > 0 && (
                             <span className="absolute -top-0.5 -right-0.5 bg-[color:var(--color-accent)] text-white text-[10px] font-medium min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">
                                 {cartCount}
                             </span>
                         )}
-                    </Link>
+                    </button>
 
                     {user ? (
                         <div className="hidden md:flex items-center gap-3 text-sm">

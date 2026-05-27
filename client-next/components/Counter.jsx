@@ -22,7 +22,7 @@ const Counter = ({ productId }) => {
             <p className="w-10 text-center text-sm font-medium" aria-live="polite">{quantity}</p>
             <button
                 type="button"
-                onClick={() => dispatch(addToCart({ productId }))}
+                onClick={() => dispatch(addToCart({ productId, openDrawer: false }))}
                 aria-label="Increase quantity"
                 className="size-9 flex items-center justify-center hover:bg-[color:var(--color-surface-2)] rounded-r-lg transition active:scale-95"
             >

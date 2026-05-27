@@ -1,12 +1,12 @@
 'use client'
 
 import { addToCart } from "@/lib/features/cart/cartSlice"
-import { Star, Tag, Globe, CreditCard, ShieldCheck, CheckCircle2, Truck } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { CheckCircle2, CreditCard, ShieldCheck, Star, Tag, Truck } from "lucide-react"
 import Image from "next/image"
-import Counter from "./Counter"
+import { useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
+import toast from "react-hot-toast"
+import Counter from "./Counter"
 
 const ProductDetails = ({ product }) => {
     const productId = product.id
@@ -14,10 +14,11 @@ const ProductDetails = ({ product }) => {
 
     const cart = useSelector(state => state.cart.cartItems)
     const dispatch = useDispatch()
-    const router = useRouter()
 
     const images = Array.isArray(product.images) && product.images.length ? product.images : []
     const [mainImage, setMainImage] = useState(images[0])
+    const [zoomActive, setZoomActive] = useState(false)
+    const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
 
     const ratingArr = Array.isArray(product.rating) ? product.rating : []
     const ratingCount = ratingArr.length
@@ -29,6 +30,18 @@ const ProductDetails = ({ product }) => {
     const mrp = product.mrp ? Number(product.mrp) : price
     const discount = mrp > price ? Math.round((1 - price / mrp) * 100) : 0
 
+    const handleAddToCart = () => {
+        dispatch(addToCart({ productId }))
+        toast.success('Added to cart')
+    }
+
+    const onZoomMove = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect()
+        const x = ((e.clientX - rect.left) / rect.width) * 100
+        const y = ((e.clientY - rect.top) / rect.height) * 100
+        setZoomPos({ x, y })
+    }
+
     const trustBadges = [
         { icon: Truck, label: 'Next-business-day shipping' },
         { icon: CreditCard, label: 'Secure checkout' },
@@ -36,9 +49,9 @@ const ProductDetails = ({ product }) => {
     ]
 
     return (
-        <div className="flex max-lg:flex-col gap-10 xl:gap-16">
+        <div className="flex max-lg:flex-col gap-10 xl:gap-16 pb-24 lg:pb-0">
 
-            {/* Gallery — SKILLS.md §5.4 */}
+            {/* Gallery — SKILLS.md §5.4. Amazon-style hover zoom on desktop. */}
             <div className="flex max-sm:flex-col-reverse gap-3 lg:max-w-xl">
                 {images.length > 1 && (
                     <div className="flex sm:flex-col gap-3">
@@ -48,25 +61,34 @@ const ProductDetails = ({ product }) => {
                                 type="button"
                                 onClick={() => setMainImage(image)}
                                 aria-label={`Show image ${index + 1}`}
-                                className={`bg-[color:var(--color-surface-2)] flex items-center justify-center size-20 sm:size-24 rounded-xl transition ${
+                                className={`relative bg-[color:var(--color-surface-2)] size-20 sm:size-24 rounded-xl overflow-hidden transition ${
                                     mainImage === image
                                         ? 'ring-2 ring-[color:var(--color-brand)]'
                                         : 'ring-1 ring-[color:var(--color-border)] hover:ring-[color:var(--color-text-3)]'
                                 }`}
                             >
-                                <Image src={image} className="max-h-14 w-auto" alt="" width={60} height={60} />
+                                <Image src={image} alt="" fill sizes="96px" className="object-cover" />
                             </button>
                         ))}
                     </div>
                 )}
-                <div className="flex-1 flex justify-center items-center h-[400px] sm:h-[460px] bg-[color:var(--color-surface-2)] rounded-2xl overflow-hidden group">
+                <div
+                    onMouseEnter={() => setZoomActive(true)}
+                    onMouseLeave={() => setZoomActive(false)}
+                    onMouseMove={onZoomMove}
+                    className="flex-1 relative h-[400px] sm:h-[480px] bg-[color:var(--color-surface-2)] rounded-2xl overflow-hidden cursor-zoom-in"
+                >
                     {mainImage && (
                         <Image
                             src={mainImage}
                             alt={product.name}
-                            width={500}
-                            height={500}
-                            className="max-h-80 w-auto transition-transform duration-500 group-hover:scale-110 cursor-zoom-in"
+                            fill
+                            sizes="(min-width:1024px) 600px, 100vw"
+                            className="object-cover transition-transform duration-300"
+                            style={zoomActive ? {
+                                transform: 'scale(1.8)',
+                                transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                            } : undefined}
                             priority
                         />
                     )}
@@ -82,7 +104,7 @@ const ProductDetails = ({ product }) => {
                 )}
                 <h1 className="text-3xl sm:text-4xl">{product.name}</h1>
 
-                <div className='flex items-center gap-2 mt-3'>
+                <div className="flex items-center gap-2 mt-3">
                     <div className="flex" aria-label={`Rated ${averageRating.toFixed(1)} out of 5`}>
                         {[1, 2, 3, 4, 5].map(n => (
                             <Star
@@ -100,7 +122,7 @@ const ProductDetails = ({ product }) => {
                     </p>
                 </div>
 
-                <div className="flex items-end gap-3 mt-5">
+                <div className="flex items-end gap-3 mt-5 flex-wrap">
                     <p className="text-3xl font-semibold text-[color:var(--color-text-1)]">{currency}{price.toFixed(2)}</p>
                     {discount > 0 && (
                         <p className="text-lg text-[color:var(--color-text-3)] line-through mb-0.5">{currency}{mrp.toFixed(2)}</p>
@@ -143,7 +165,8 @@ const ProductDetails = ({ product }) => {
                     )}
                 </dl>
 
-                <div className="flex items-end gap-4 mt-8 flex-wrap">
+                {/* Desktop / tablet CTA row */}
+                <div className="hidden sm:flex items-end gap-4 mt-8 flex-wrap">
                     {cart[productId] && (
                         <div className="flex flex-col gap-2">
                             <p className="text-sm text-[color:var(--color-text-2)] font-medium">Quantity</p>
@@ -152,11 +175,11 @@ const ProductDetails = ({ product }) => {
                     )}
                     <button
                         type="button"
-                        onClick={() => !cart[productId] ? dispatch(addToCart({ productId })) : router.push('/cart')}
+                        onClick={handleAddToCart}
                         disabled={!product.inStock}
                         className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                        {!cart[productId] ? 'Add to cart' : 'View cart'}
+                        {cart[productId] ? `In cart · ${cart[productId]} · Add another` : 'Add to cart'}
                     </button>
                 </div>
 
@@ -172,6 +195,29 @@ const ProductDetails = ({ product }) => {
                         </li>
                     ))}
                 </ul>
+            </div>
+
+            {/* Mobile sticky bottom CTA — SKILLS.md §8 mobile checklist */}
+            <div className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-[color:var(--color-border)] p-3 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]">
+                <div className="flex items-center gap-3">
+                    <div>
+                        <p className="text-base font-semibold leading-none">{currency}{price.toFixed(2)}</p>
+                        {discount > 0 && (
+                            <p className="text-xs text-[color:var(--color-text-3)] line-through mt-1">{currency}{mrp.toFixed(2)}</p>
+                        )}
+                    </div>
+                    {cart[productId] ? (
+                        <div className="ml-auto"><Counter productId={productId} /></div>
+                    ) : null}
+                    <button
+                        type="button"
+                        onClick={handleAddToCart}
+                        disabled={!product.inStock}
+                        className="ml-auto btn-primary !py-2.5 !px-5 flex-1 max-w-[60%] disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                        {product.inStock ? (cart[productId] ? 'Add another' : 'Add to cart') : 'Out of stock'}
+                    </button>
+                </div>
             </div>
         </div>
     )
