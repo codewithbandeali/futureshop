@@ -14,66 +14,56 @@ use Illuminate\Support\Str;
  * Brands:     Apple, Dell, HP, Samsung
  *
  * Image strategy: each product gets a category-appropriate high-quality
- * Unsplash photo, delivered through Cloudinary's fetch CDN so it's
- * automatically converted to WebP/AVIF and cached permanently. Even if
- * the source URL ever 404s, Cloudinary keeps serving the cached copy.
+ * Unsplash photo (commercial-use, no attribution required) served via
+ * Unsplash's own CDN. Resolution 1200px, q=85 — production-grade.
  *
- * For true brand-specific photos, upload via /admin/products/[id]/edit —
- * the row's image URL gets replaced and these defaults disappear.
+ * To move these to permanent Cloudinary-hosted assets (instead of hot-
+ * linking Unsplash), run after seeding:
+ *
+ *     php artisan products:upload-images-to-cloudinary
+ *
+ * That command iterates every non-Cloudinary image URL and re-uploads
+ * each to Cloudinary, replacing the row with the resulting upload URL.
+ *
+ * For brand-specific shots (Apple/Dell press kits etc.), upload via
+ * /admin/products/[id]/edit — those overwrite the seeded defaults.
  */
 class ProductSeeder extends Seeder
 {
-    /** Cloud name from CLOUDINARY_URL — falls back to demo for safety. */
-    private function cloudinaryFetch(string $sourceUrl, string $transforms = 'f_auto,q_auto,w_1200,c_fit'): string
-    {
-        $cloud = $this->cloudName();
-        // Cloudinary's /image/fetch/ wants the raw URL appended, NOT urlencoded.
-        return "https://res.cloudinary.com/{$cloud}/image/fetch/{$transforms}/{$sourceUrl}";
-    }
-
-    private function cloudName(): string
-    {
-        $name = env('CLOUDINARY_CLOUD_NAME');
-        if ($name) return $name;
-        $url = env('CLOUDINARY_URL', '');
-        if (preg_match('#@([^/]+)#', $url, $m)) return $m[1];
-        return 'demo'; // public-readable demo cloud — fallback only
-    }
-
     public function run()
     {
-        // Curated HD Unsplash photos (commercial-use, no attribution required).
-        // Each URL pulls a ~1200px JPEG; Cloudinary fetch optimises delivery.
+        // Curated HD Unsplash photos — 1200px, JPEG q=85, served by Unsplash's
+        // own CDN (fast globally, no extra config required).
         $laptopShots = [
-            'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=1200&q=85',  // MacBook on wood desk
-            'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1200&q=85',  // sleek laptop
-            'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=1200&q=85',  // MacBook open
-            'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1200&q=85',  // silver laptop
+            'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=1200&q=85',
+            'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1200&q=85',
+            'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=1200&q=85',
+            'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1200&q=85',
         ];
         $desktopShots = [
-            'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=1200&q=85',  // PC workstation
-            'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=1200&q=85',  // gaming desktop
-            'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=1200&q=85',     // clean desktop setup
+            'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=1200&q=85',
+            'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=1200&q=85',
+            'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=1200&q=85',
         ];
         $monitorShots = [
-            'https://images.unsplash.com/photo-1547119957-637f8679db1e?w=1200&q=85',     // curved monitor
-            'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=1200&q=85',  // dual monitor
-            'https://images.unsplash.com/photo-1616763355548-1b606f439f86?w=1200&q=85',  // monitor on desk
+            'https://images.unsplash.com/photo-1547119957-637f8679db1e?w=1200&q=85',
+            'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=1200&q=85',
+            'https://images.unsplash.com/photo-1616763355548-1b606f439f86?w=1200&q=85',
         ];
         $tabletShots = [
-            'https://images.unsplash.com/photo-1561154464-82e9adf32764?w=1200&q=85',     // iPad-style tablet
-            'https://images.unsplash.com/photo-1542751110-97427bbecf20?w=1200&q=85',     // tablet held
+            'https://images.unsplash.com/photo-1561154464-82e9adf32764?w=1200&q=85',
+            'https://images.unsplash.com/photo-1542751110-97427bbecf20?w=1200&q=85',
         ];
         $printerShots = [
-            'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=1200&q=85',  // office printer
-            'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=1200&q=85',  // tech device
+            'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=1200&q=85',
+            'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=1200&q=85',
         ];
         $scannerShots = [
-            'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=1200&q=85',  // tech device
-            'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=1200&q=85',     // desk setup
+            'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=1200&q=85',
+            'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=1200&q=85',
         ];
 
-        // [name, category, brand, price, mrp(null=no sale), stock, description, imagePool]
+        // [name, category, brand, price, mrp(null=no sale), stock, description, image]
         $items = [
             // Laptops
             ['Dell XPS 13 (2024)', 'laptop', 'Dell', 1399.00, 1599.00, 14,
@@ -120,7 +110,7 @@ class ProductSeeder extends Seeder
                 'Compact USB scanner for documents and ID cards. TWAIN-compatible, Windows + macOS.', $scannerShots[1]],
         ];
 
-        foreach ($items as [$name, $category, $brand, $price, $mrp, $stock, $desc, $sourceUrl]) {
+        foreach ($items as [$name, $category, $brand, $price, $mrp, $stock, $desc, $imageUrl]) {
             $slug = Str::slug($name);
             $product = Product::updateOrCreate(
                 ['slug' => $slug],
@@ -137,16 +127,11 @@ class ProductSeeder extends Seeder
                 ]
             );
 
-            // Each product gets the same HD image delivered through Cloudinary
-            // (auto WebP/AVIF + CDN caching). Replace per product via /admin
-            // when you have brand-specific photos.
-            $cdnUrl = $this->cloudinaryFetch($sourceUrl);
-
             if ($product->images()->count() === 0) {
-                Image::create(['product_id' => $product->id, 'image' => $cdnUrl]);
+                Image::create(['product_id' => $product->id, 'image' => $imageUrl]);
             }
             if (!$product->thumbnail) {
-                Thumbnail::create(['product_id' => $product->id, 'thumbnail' => $cdnUrl]);
+                Thumbnail::create(['product_id' => $product->id, 'thumbnail' => $imageUrl]);
             }
         }
     }
