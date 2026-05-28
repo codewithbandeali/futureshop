@@ -126,6 +126,19 @@ class ProductSeeder extends Seeder
                 'Compact USB scanner for documents and ID cards. TWAIN-compatible, Windows + macOS.', $scannerShots[1], null],
         ];
 
+        // Pool the per-category shots so each product gets 3 distinct images
+        // (main + 2 alternative angles). With a small Unsplash pool some
+        // photos repeat across products — fine for a demo catalog, and any
+        // product can be overridden via /admin/products/[id]/edit.
+        $shotsByCategory = [
+            'laptop'  => $laptopShots,
+            'desktop' => $desktopShots,
+            'monitor' => $monitorShots,
+            'tablet'  => $tabletShots,
+            'printer' => $printerShots,
+            'scanner' => $scannerShots,
+        ];
+
         foreach ($items as [$name, $category, $brand, $price, $mrp, $stock, $desc, $imageUrl, $options]) {
             $slug = Str::slug($name);
             $product = Product::updateOrCreate(
@@ -144,8 +157,19 @@ class ProductSeeder extends Seeder
                 ]
             );
 
+            // Build a 3-image gallery: the curated main shot first, then
+            // up to two alternative photos from the same category pool
+            // (skipping the main so we don't dupe in the gallery strip).
+            $pool = $shotsByCategory[$category] ?? [$imageUrl];
+            $gallery = collect([$imageUrl])
+                ->concat(collect($pool)->reject(fn($u) => $u === $imageUrl)->take(2)->values())
+                ->values()
+                ->all();
+
             if ($product->images()->count() === 0) {
-                Image::create(['product_id' => $product->id, 'image' => $imageUrl]);
+                foreach ($gallery as $url) {
+                    Image::create(['product_id' => $product->id, 'image' => $url]);
+                }
             }
             if (!$product->thumbnail) {
                 Thumbnail::create(['product_id' => $product->id, 'thumbnail' => $imageUrl]);

@@ -1,5 +1,5 @@
 'use client'
-import { ShoppingCart, User, LogOut, Menu, X } from "lucide-react"
+import { Heart, ShoppingCart, User, LogOut, Menu, X } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -53,6 +53,13 @@ const Navbar = () => {
                 <SearchAutocomplete className="hidden lg:block flex-1 max-w-sm" />
 
                 <div className="flex items-center gap-3">
+                    <Link
+                        href="/wishlist"
+                        aria-label="Wishlist"
+                        className="hidden sm:inline-flex p-2 hover:text-[color:var(--color-accent)] transition"
+                    >
+                        <Heart size={20} aria-hidden="true" />
+                    </Link>
                     <button
                         type="button"
                         onClick={() => dispatch(openMiniCart())}
@@ -101,7 +108,9 @@ const Navbar = () => {
                     <nav className="flex flex-col gap-3 text-sm" aria-label="Mobile navigation">
                         <Link onClick={() => setMobileOpen(false)} href="/">Home</Link>
                         <Link onClick={() => setMobileOpen(false)} href="/shop">Shop</Link>
+                        <Link onClick={() => setMobileOpen(false)} href="/wishlist">Wishlist</Link>
                         {user && <Link onClick={() => setMobileOpen(false)} href="/orders">Orders</Link>}
+                        {user && <Link onClick={() => setMobileOpen(false)} href="/account">Account</Link>}
                         {user
                             ? <button className="text-left text-[color:var(--color-accent)]" onClick={handleLogout}>Sign out</button>
                             : <Link onClick={() => setMobileOpen(false)} href="/login" className="text-[color:var(--color-accent)]">Sign in</Link>}

@@ -2,10 +2,11 @@
 import { Heart, ShoppingBag, Star } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import toast from 'react-hot-toast'
 import { addToCart } from '@/lib/features/cart/cartSlice'
+import { isWished, toggleWishlist, WISHLIST_EVENT } from '@/lib/wishlist'
 
 /**
  * Product card — Amazon/Shopify-style polish.
@@ -35,13 +36,28 @@ const ProductCard = ({ product }) => {
     const inStock = product.inStock !== false && stock > 0
     const lowStock = inStock && stock <= 5
 
+    // Mirror the localStorage wishlist into component state and stay in
+    // sync via the WISHLIST_EVENT (other cards in the same render tree)
+    // and `storage` (other tabs).
     const [wished, setWished] = useState(false)
+
+    useEffect(() => {
+        const sync = () => setWished(isWished(product.id))
+        sync()
+        window.addEventListener(WISHLIST_EVENT, sync)
+        window.addEventListener('storage', sync)
+        return () => {
+            window.removeEventListener(WISHLIST_EVENT, sync)
+            window.removeEventListener('storage', sync)
+        }
+    }, [product.id])
 
     const toggleWish = (e) => {
         e.preventDefault()
         e.stopPropagation()
-        setWished(w => !w)
-        toast.success(wished ? 'Removed from wishlist' : 'Added to wishlist')
+        const nowWished = toggleWishlist(product.id)
+        setWished(nowWished)
+        toast.success(nowWished ? 'Added to wishlist' : 'Removed from wishlist')
     }
 
     const handleAddToCart = (e) => {
