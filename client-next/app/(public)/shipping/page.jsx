@@ -22,10 +22,10 @@ export default function ShippingPage() {
             </Section>
 
             <Section title="Where we ship">
-                <p>Continental US, Alaska, Hawaii, and Canada. International orders by quote — <a href="/contact" className="underline underline-offset-4 text-[color:var(--color-brand)]">contact us</a> for details.</p>
+                <p>Continental US, Alaska, Hawaii, and Canada. International orders by quote. <a href="/contact" className="underline underline-offset-4 text-[color:var(--color-brand)]">Contact us</a> for details.</p>
             </Section>
 
-            <Section title="Returns — 30 days">
+            <Section title="Returns within 30 days">
                 <p>Unopened items can be returned for a full refund within 30 days of delivery. Opened items in like-new condition are accepted with a 15% restocking fee. The return shipping label is on us if the issue is ours; otherwise it's on you.</p>
                 <p className="mt-3">To start a return, email <a href="mailto:returns@futureshop.example" className="underline underline-offset-4 text-[color:var(--color-brand)]">returns@futureshop.example</a> with your order number. We'll send the RMA and the prepaid label.</p>
             </Section>
@@ -35,7 +35,7 @@ export default function ShippingPage() {
             </Section>
 
             <Section title="Warranty issues">
-                <p>If a unit fails inside the manufacturer warranty window, file directly with the manufacturer for fastest service — Apple, Dell, HP, and Samsung all offer first-party warranty repair. We'll help if you'd rather we handle it.</p>
+                <p>If a unit fails inside the manufacturer warranty window, file directly with the manufacturer for fastest service. Apple, Dell, HP, and Samsung all offer first-party warranty repair. We'll help if you'd rather we handle it.</p>
             </Section>
         </article>
     )

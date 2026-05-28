@@ -26,7 +26,7 @@ export default function TermsPage() {
             </Section>
 
             <Section title="4. Shipping & risk of loss">
-                <p>Ownership and risk transfer to you when the carrier picks up the order. If a package is damaged in transit, file a claim with the carrier and contact us within 7 days — we'll help.</p>
+                <p>Ownership and risk transfer to you when the carrier picks up the order. If a package is damaged in transit, file a claim with the carrier and contact us within 7 days. We'll help.</p>
             </Section>
 
             <Section title="5. Warranty">
@@ -50,7 +50,7 @@ export default function TermsPage() {
             </Section>
 
             <p className="text-sm text-[color:var(--color-text-3)] mt-12 pt-6 border-t border-[color:var(--color-border)]">
-                This page is a template suitable for review — replace with the formal legal
+                This page is a template suitable for review. Replace with the formal legal
                 copy your counsel approves before going live.
             </p>
         </article>

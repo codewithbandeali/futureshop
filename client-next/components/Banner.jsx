@@ -23,7 +23,7 @@ export default function Banner() {
             <div className="flex items-center justify-between max-w-7xl mx-auto gap-4">
                 <p className="flex-1 sm:flex-none">
                     <span className="font-semibold text-[color:var(--color-accent)]">20% OFF</span>
-                    <span className="ml-2">your first order — use code NEW20</span>
+                    <span className="ml-2">your first order. Use code NEW20.</span>
                 </p>
                 <div className="flex items-center gap-3">
                     <button

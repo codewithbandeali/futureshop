@@ -33,7 +33,7 @@ export default function PrivacyPage() {
             </Section>
 
             <Section title="Who we share it with">
-                <p>Only processors we use to run the shop — shipping carriers (USPS/UPS/FedEx, in transit data only), payment processor (Stripe/equivalent), email provider for transactional mail. Every processor is bound by a Data Processing Agreement.</p>
+                <p>Only processors we use to run the shop: shipping carriers (USPS, UPS, FedEx, in-transit data only), payment processor (Stripe or equivalent), and the email provider for transactional mail. Every processor is bound by a Data Processing Agreement.</p>
             </Section>
 
             <Section title="Your rights">

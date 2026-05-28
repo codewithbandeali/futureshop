@@ -120,7 +120,7 @@ const Spinner360 = ({ frames = [], alt = '', sensitivity = 6, autoSpinIntervalMs
                 ref={containerRef}
                 role="img"
                 aria-roledescription="360 degree product spinner"
-                aria-label={`${alt || 'Product'} — 360° view, drag to rotate`}
+                aria-label={`${alt || 'Product'}. 360 degree view. Drag to rotate.`}
                 tabIndex={0}
                 onKeyDown={onKey}
                 onMouseDown={(e) => { e.preventDefault(); startDrag(e.clientX) }}

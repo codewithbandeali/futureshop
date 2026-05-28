@@ -2,7 +2,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 
 export const metadata = {
     title: "Admin · FutureShop",
-    description: "FutureShop admin — manage products, orders, customers.",
+    description: "FutureShop admin. Manage products, orders, customers.",
     robots: { index: false, follow: false },
 };
 

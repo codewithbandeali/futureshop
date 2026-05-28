@@ -53,10 +53,10 @@ const ProductQA = ({ productId }) => {
         try {
             const saved = await apiPost(`/api/products/${productId}/questions`, { question: q })
             setQuestions(prev => prev.map(x => x.id === tempId ? saved : x))
-            toast.success("Question submitted — we'll answer shortly")
+            toast.success("Question submitted. We'll answer shortly.")
         } catch {
             setQuestions(prev => prev.filter(x => x.id !== tempId))
-            toast.error("Couldn't submit — try again later")
+            toast.error("Couldn't submit. Try again later.")
         } finally {
             setBusy(false)
         }
@@ -122,7 +122,7 @@ const ProductQA = ({ productId }) => {
                 <div className="text-center py-12 bg-white border border-[color:var(--color-border)] rounded-2xl">
                     <MessageCircle size={36} className="mx-auto text-[color:var(--color-text-3)]" strokeWidth={1.5} />
                     <p className="text-[color:var(--color-text-2)] mt-3">
-                        No questions yet — be the first to ask.
+                        No questions yet. Be the first to ask.
                     </p>
                 </div>
             ) : (

@@ -194,7 +194,7 @@ const ProductDetails = ({ product }) => {
                     )}
 
                     {mediaMode === 'video' && hasVideo && (
-                        <VideoPlayer url={product.video_url} title={`${product.name} — demo`} poster={mainImage} />
+                        <VideoPlayer url={product.video_url} title={`${product.name} demo`} poster={mainImage} />
                     )}
                 </div>
             </div>
@@ -246,7 +246,7 @@ const ProductDetails = ({ product }) => {
                 <div className="mt-5">
                     {product.inStock ? (
                         <span className="inline-flex items-center gap-1.5 text-sm text-[color:var(--color-success)] font-medium">
-                            <CheckCircle2 size={16} aria-hidden="true" /> In stock — ships today
+                            <CheckCircle2 size={16} aria-hidden="true" /> In stock. Ships today.
                         </span>
                     ) : (
                         <span className="text-sm text-[color:var(--color-accent)] font-medium">Currently out of stock</span>
@@ -336,7 +336,7 @@ const ProductDetails = ({ product }) => {
                             onClick={handleBuyNow}
                             disabled={maxAddable === 0}
                             className="btn-secondary inline-flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                            aria-label="Buy now — skip the cart, go straight to checkout"
+                            aria-label="Buy now. Skip the cart and go straight to checkout."
                         >
                             <Zap size={14} aria-hidden="true" />
                             Buy now

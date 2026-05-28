@@ -14,13 +14,13 @@ const Hero = () => {
         <section className="bg-[color:var(--color-surface)]">
             <div className="max-w-7xl mx-auto px-6 py-20 sm:py-24 lg:py-32 text-center">
                 <p className="text-xs uppercase tracking-[0.15em] text-[color:var(--color-text-2)] mb-5">
-                    Computers &middot; printers &middot; monitors
+                    Computers, printers, monitors
                 </p>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl max-w-3xl mx-auto leading-[1.1]">
                     Computing built for work.
                 </h1>
                 <p className="text-[color:var(--color-text-2)] max-w-xl mx-auto mt-6 text-base sm:text-lg">
-                    Business-grade laptops, desktops, and peripherals from Dell, HP, Apple, and Samsung &mdash; specced by people who actually use them.
+                    Business-grade laptops, desktops, and peripherals from Dell, HP, Apple, and Samsung.
                 </p>
                 <div className="mt-10 flex flex-wrap justify-center gap-3">
                     <Link href="/shop" className="btn-primary inline-flex items-center gap-2">

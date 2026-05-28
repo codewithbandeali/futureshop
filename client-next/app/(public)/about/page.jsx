@@ -11,9 +11,9 @@ export default function AboutPage() {
             <p className="text-xs uppercase tracking-[0.15em] text-[color:var(--color-text-3)]">About</p>
             <h1 className="text-4xl sm:text-5xl mt-2">Computers, picked carefully.</h1>
             <p className="text-lg text-[color:var(--color-text-2)] mt-6 leading-relaxed">
-                FutureShop is a small, opinionated computer hardware shop. We carry
-                laptops, desktops, monitors, tablets, printers and scanners from Apple,
-                Dell, HP and Samsung — only the configurations we'd actually buy ourselves.
+                FutureShop is a computer hardware shop. We carry laptops,
+                desktops, monitors, tablets, printers, and scanners from
+                Apple, Dell, HP, and Samsung.
             </p>
 
             <h2 className="text-2xl mt-12">What we promise</h2>
@@ -24,12 +24,11 @@ export default function AboutPage() {
                 <li>• <strong>Human support.</strong> Email or phone someone who actually uses this equipment for a living.</li>
             </ul>
 
-            <h2 className="text-2xl mt-12">Who's behind this</h2>
+            <h2 className="text-2xl mt-12">Who we serve</h2>
             <p className="text-[color:var(--color-text-2)] mt-4 leading-relaxed">
-                FutureShop is run by a small team of IT veterans who got tired of explaining
-                to friends why the laptop the big-box site recommended was wrong for them.
-                We specialise in pre-sale configuration advice for small businesses, design
-                studios, and engineering teams that don't have an IT department.
+                Small businesses, design studios, and engineering teams that
+                don't have an IT department. We offer pre-sale configuration
+                advice and bulk quotes on request.
             </p>
 
             <div className="mt-12 p-6 bg-[color:var(--color-surface-2)] rounded-2xl">

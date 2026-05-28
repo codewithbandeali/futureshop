@@ -64,7 +64,7 @@ export default function AdminCoupons() {
             setShowForm(false)
             refresh()
         } catch (err) {
-            toast.error('Could not create coupon — check the code is unique and fields are valid')
+            toast.error('Could not create coupon. Check the code is unique and fields are valid.')
         } finally {
             setBusy(false)
         }

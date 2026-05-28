@@ -20,7 +20,7 @@ const Newsletter = () => {
             toast.success("You're on the list")
             setEmail('')
         } catch {
-            toast.error("Couldn't subscribe — try again")
+            toast.error("Couldn't subscribe. Try again.")
         } finally {
             setBusy(false)
         }
@@ -30,7 +30,7 @@ const Newsletter = () => {
         <section className="px-6 my-24 max-w-3xl mx-auto text-center">
             <Title
                 title="Stay in the loop"
-                description="New arrivals, restocks, and the occasional good deal — no spam."
+                description="New arrivals, restocks, and occasional good deals. No spam."
                 visibleButton={false}
             />
             <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3 mt-10 max-w-xl mx-auto">

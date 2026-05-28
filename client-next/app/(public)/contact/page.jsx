@@ -21,10 +21,10 @@ export default function ContactPage() {
             const stored = JSON.parse(window.localStorage.getItem('contact_pending') || '[]')
             stored.push({ ...form, ts: Date.now() })
             window.localStorage.setItem('contact_pending', JSON.stringify(stored))
-            toast.success("Message saved — we'll be in touch.")
+            toast.success("Message saved. We'll be in touch.")
             setForm({ name: "", email: "", subject: "", message: "" })
         } catch {
-            toast.error("Couldn't send — try again later")
+            toast.error("Couldn't send. Try again later.")
         } finally {
             setBusy(false)
         }
@@ -35,8 +35,8 @@ export default function ContactPage() {
             <p className="text-xs uppercase tracking-[0.15em] text-[color:var(--color-text-3)]">Contact</p>
             <h1 className="text-4xl sm:text-5xl mt-2">We're easy to reach.</h1>
             <p className="text-lg text-[color:var(--color-text-2)] mt-6 max-w-2xl">
-                Pre-sale questions, bulk quotes, warranty claims, or just want a second opinion
-                on a config — pick a channel and we'll get back within one business day.
+                Pre-sale questions, bulk quotes, warranty claims, or a second opinion
+                on a configuration. Pick a channel and we'll reply within one business day.
             </p>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-12">

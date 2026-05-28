@@ -143,7 +143,7 @@ export default function CheckoutPage() {
             toast.success("Order placed!")
             router.push(newId ? `/checkout/success?orderId=${newId}` : "/orders")
         } catch (err) {
-            toast.error("Couldn't place order — please try again")
+            toast.error("Couldn't place order. Please try again.")
         } finally {
             setBusy(false)
         }
@@ -333,7 +333,7 @@ export default function CheckoutPage() {
                             {busy ? "Placing order…" : "Place order"}
                         </button>
                         <p className="text-xs text-[color:var(--color-text-3)] mt-3 text-center">
-                            Payment integration not yet enabled — orders are saved as <em>unpaid</em>.
+                            Payment integration not yet enabled. Orders are saved as <em>unpaid</em>.
                         </p>
                     </div>
                 </aside>

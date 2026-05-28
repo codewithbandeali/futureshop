@@ -93,7 +93,7 @@ const FrequentlyBoughtTogether = ({ anchor }) => {
                         {currency}{bundleTotal.toFixed(2)}
                     </p>
                     <p className="text-xs text-[color:var(--color-text-2)] mt-1">
-                        {bundle.length} item{bundle.length !== 1 ? 's' : ''} — uncheck what you don&apos;t want
+                        {bundle.length} item{bundle.length !== 1 ? 's' : ''} selected. Uncheck what you don&apos;t want.
                     </p>
                     <button
                         type="button"

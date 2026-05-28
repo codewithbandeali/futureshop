@@ -98,7 +98,7 @@ const ProductDescription = ({ product }) => {
             {/* Reviews — with histogram + verified badge + photo strip */}
             {selectedTab === 'reviews' && (
                 reviewCount === 0 ? (
-                    <p className="text-[color:var(--color-text-3)]">No reviews yet — be the first to review this product.</p>
+                    <p className="text-[color:var(--color-text-3)]">No reviews yet. Be the first to review this product.</p>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                         {/* Histogram aside (Amazon-style) */}

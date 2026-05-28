@@ -44,7 +44,7 @@ const Footer = () => {
             <div className="border-t border-white/10">
                 <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row sm:justify-between gap-3 text-xs text-white/50">
                     <p>&copy; {year} FutureShop. All rights reserved.</p>
-                    <p>Apple &middot; Dell &middot; HP &middot; Samsung &mdash; authorized reseller</p>
+                    <p>Authorized reseller of Apple, Dell, HP, and Samsung.</p>
                 </div>
             </div>
         </footer>

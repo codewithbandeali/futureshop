@@ -7,10 +7,10 @@ import Title from './Title'
  */
 const specs = [
     { icon: Truck, title: 'Next-day shipping', description: 'Order by 3pm for next-business-day delivery anywhere in the lower 48.' },
-    { icon: ShieldCheck, title: 'Manufacturer warranty', description: 'Full Apple, Dell, HP and Samsung warranty on every order — no third-party gotchas.' },
-    { icon: Headset, title: 'Real human support', description: 'Talk to someone who knows the difference between RAM and SSD. Phone, chat, email.' },
+    { icon: ShieldCheck, title: 'Manufacturer warranty', description: 'Full Apple, Dell, HP, and Samsung warranty on every order. No third-party policies.' },
+    { icon: Headset, title: 'Real human support', description: 'Phone, chat, and email staffed by people who know the products.' },
     { icon: BadgeDollarSign, title: 'Price-match guarantee', description: "Found it cheaper at an authorized reseller? We'll match within 30 days." },
-    { icon: Recycle, title: '30-day returns', description: 'Change of mind, dead pixel, doesn\'t suit your workflow — send it back, no questions.' },
+    { icon: Recycle, title: '30-day returns', description: 'Return any product within 30 days. No questions.' },
     { icon: Lock, title: 'Secure checkout', description: 'PCI-DSS compliant payment. We never store your card details.' },
 ]
 

@@ -68,7 +68,7 @@ export default function AdminDashboard() {
             <section className="bg-white border border-[color:var(--color-border)] rounded-xl p-5 mt-8">
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h2 className="text-lg">Orders — last 30 days</h2>
+                        <h2 className="text-lg">Orders over the last 30 days</h2>
                         <p className="text-xs text-[color:var(--color-text-3)] mt-0.5">
                             Daily order volume across the shop.
                         </p>

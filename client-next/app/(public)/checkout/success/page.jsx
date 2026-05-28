@@ -95,7 +95,7 @@ function SuccessContent() {
                 </div>
 
                 <p className="text-xs text-[color:var(--color-text-3)] mt-8">
-                    Payment integration is not yet enabled — orders are saved as <em>unpaid</em>. The shop owner will follow up to collect payment.
+                    Payment integration is not yet enabled. Orders are saved as <em>unpaid</em>. The shop owner will follow up to collect payment.
                 </p>
             </div>
         </div>
