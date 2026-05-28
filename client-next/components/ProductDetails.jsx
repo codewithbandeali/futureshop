@@ -1,12 +1,11 @@
 'use client'
 
 import { addToCart } from "@/lib/features/cart/cartSlice"
-import { CheckCircle2, CreditCard, ShieldCheck, Star, Tag, Truck } from "lucide-react"
+import { CheckCircle2, CreditCard, Minus, Plus, ShieldCheck, Star, Tag, Truck } from "lucide-react"
 import Image from "next/image"
 import { useMemo, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import toast from "react-hot-toast"
-import Counter from "./Counter"
 import VariantPicker, { defaultVariantSelection } from "./VariantPicker"
 
 const ProductDetails = ({ product }) => {
@@ -42,12 +41,28 @@ const ProductDetails = ({ product }) => {
     const mrp = product.mrp ? Number(product.mrp) : price
     const discount = mrp > price ? Math.round((1 - price / mrp) * 100) : 0
 
+    // Quantity picker — always visible (B&H/Newegg pattern for hardware
+    // shops where buyers often want 5+ at a time). Local state, decoupled
+    // from cart; Add to cart dispatches it N times in one go.
+    const stock = Number(product.stock ?? 99)
+    const [qty, setQty] = useState(1)
+    const inCart = cart[productId] ?? 0
+    const maxAddable = Math.max(0, stock - inCart)
+    const clampedMax = Math.min(99, maxAddable) // sane upper bound
+    const decQty = () => setQty(q => Math.max(1, q - 1))
+    const incQty = () => setQty(q => Math.min(clampedMax || 1, q + 1))
+
     const handleAddToCart = () => {
-        dispatch(addToCart({ productId }))
+        for (let i = 0; i < qty; i++) {
+            // Suppress the mini-cart drawer on intermediate dispatches so
+            // it only opens once at the end (state.miniCartOpen latches true).
+            dispatch(addToCart({ productId, openDrawer: i === qty - 1 }))
+        }
+        const noun = qty === 1 ? 'Added' : `Added ${qty} ×`
         if (variantSummary) {
-            toast.success(`Added ${variantSummary} to cart`)
+            toast.success(`${noun} ${variantSummary} to cart`)
         } else {
-            toast.success('Added to cart')
+            toast.success(`${noun} to cart`)
         }
     }
 
@@ -191,21 +206,56 @@ const ProductDetails = ({ product }) => {
                     )}
                 </dl>
 
-                {/* Desktop / tablet CTA row */}
+                {/* Desktop / tablet CTA row — qty picker is always visible
+                    so buyers can pick before adding (hardware-shop pattern). */}
                 <div className="hidden sm:flex items-end gap-4 mt-8 flex-wrap">
-                    {cart[productId] && (
-                        <div className="flex flex-col gap-2">
-                            <p className="text-sm text-[color:var(--color-text-2)] font-medium">Quantity</p>
-                            <Counter productId={productId} />
+                    <div className="flex flex-col gap-2">
+                        <label htmlFor={`qty-${productId}`} className="text-sm text-[color:var(--color-text-2)] font-medium">
+                            Quantity
+                        </label>
+                        <div className="inline-flex items-center rounded-lg border border-[color:var(--color-border)] bg-white select-none">
+                            <button
+                                type="button"
+                                onClick={decQty}
+                                disabled={qty <= 1}
+                                aria-label="Decrease quantity"
+                                className="size-10 flex items-center justify-center hover:bg-[color:var(--color-surface-2)] rounded-l-lg transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                <Minus size={14} />
+                            </button>
+                            <input
+                                id={`qty-${productId}`}
+                                type="number"
+                                min={1}
+                                max={clampedMax || 99}
+                                value={qty}
+                                onChange={(e) => {
+                                    const v = parseInt(e.target.value || '1', 10)
+                                    if (Number.isFinite(v)) setQty(Math.max(1, Math.min(clampedMax || 99, v)))
+                                }}
+                                aria-label="Quantity"
+                                className="w-12 text-center text-sm font-medium bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                            <button
+                                type="button"
+                                onClick={incQty}
+                                disabled={clampedMax > 0 && qty >= clampedMax}
+                                aria-label="Increase quantity"
+                                className="size-10 flex items-center justify-center hover:bg-[color:var(--color-surface-2)] rounded-r-lg transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                <Plus size={14} />
+                            </button>
                         </div>
-                    )}
+                    </div>
                     <button
                         type="button"
                         onClick={handleAddToCart}
-                        disabled={!product.inStock}
+                        disabled={!product.inStock || maxAddable === 0}
                         className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                        {cart[productId] ? `In cart · ${cart[productId]} · Add another` : 'Add to cart'}
+                        {product.inStock
+                            ? (inCart > 0 ? `Add ${qty} more · ${inCart} in cart` : `Add ${qty > 1 ? qty + ' ' : ''}to cart`)
+                            : 'Out of stock'}
                     </button>
                 </div>
 
@@ -223,25 +273,44 @@ const ProductDetails = ({ product }) => {
                 </ul>
             </div>
 
-            {/* Mobile sticky bottom CTA — SKILLS.md §8 mobile checklist */}
+            {/* Mobile sticky bottom CTA — SKILLS.md §8 mobile checklist.
+                Qty picker collapses to a compact inline stepper. */}
             <div className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-[color:var(--color-border)] p-3 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]">
-                <div className="flex items-center gap-3">
-                    <div>
-                        <p className="text-base font-semibold leading-none">{currency}{price.toFixed(2)}</p>
-                        {discount > 0 && (
-                            <p className="text-xs text-[color:var(--color-text-3)] line-through mt-1">{currency}{mrp.toFixed(2)}</p>
-                        )}
+                <div className="flex items-center gap-2">
+                    <div className="shrink-0">
+                        <p className="text-base font-semibold leading-none">{currency}{(price * qty).toFixed(2)}</p>
+                        <p className="text-[10px] text-[color:var(--color-text-3)] mt-0.5">
+                            {qty > 1 ? `${qty} × ${currency}${price.toFixed(2)}` : (discount > 0 ? `was ${currency}${mrp.toFixed(2)}` : 'each')}
+                        </p>
                     </div>
-                    {cart[productId] ? (
-                        <div className="ml-auto"><Counter productId={productId} /></div>
-                    ) : null}
+                    <div className="inline-flex items-center rounded-md border border-[color:var(--color-border)] bg-white select-none">
+                        <button
+                            type="button"
+                            onClick={decQty}
+                            disabled={qty <= 1}
+                            aria-label="Decrease quantity"
+                            className="size-8 flex items-center justify-center disabled:opacity-40"
+                        >
+                            <Minus size={12} />
+                        </button>
+                        <span className="w-7 text-center text-sm font-medium" aria-live="polite">{qty}</span>
+                        <button
+                            type="button"
+                            onClick={incQty}
+                            disabled={clampedMax > 0 && qty >= clampedMax}
+                            aria-label="Increase quantity"
+                            className="size-8 flex items-center justify-center disabled:opacity-40"
+                        >
+                            <Plus size={12} />
+                        </button>
+                    </div>
                     <button
                         type="button"
                         onClick={handleAddToCart}
-                        disabled={!product.inStock}
-                        className="ml-auto btn-primary !py-2.5 !px-5 flex-1 max-w-[60%] disabled:opacity-40 disabled:cursor-not-allowed"
+                        disabled={!product.inStock || maxAddable === 0}
+                        className="ml-auto btn-primary !py-2.5 !px-4 flex-1 disabled:opacity-40 disabled:cursor-not-allowed text-sm"
                     >
-                        {product.inStock ? (cart[productId] ? 'Add another' : 'Add to cart') : 'Out of stock'}
+                        {product.inStock ? 'Add to cart' : 'Out of stock'}
                     </button>
                 </div>
             </div>
