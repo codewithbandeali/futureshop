@@ -1,6 +1,7 @@
 'use client'
 import Image from "next/image"
 import { MapPin, Mail, Phone } from "lucide-react"
+import { formatDate } from "@/lib/format"
 
 const statusStyles = {
     pending: 'bg-amber-100 text-amber-700',
@@ -21,7 +22,7 @@ const StoreInfo = ({ store }) => {
                             {store.status}
                         </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">Applied {new Date(store.createdAt).toLocaleDateString()}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Applied {formatDate(store.createdAt)}</p>
                 </div>
             </div>
 

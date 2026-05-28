@@ -2,6 +2,13 @@
 
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
+const dayKeyUTC = (date) => date.toISOString().slice(0, 10)
+const formatChartLabel = (dateKey) => new Intl.DateTimeFormat('en-US', {
+    timeZone: 'UTC',
+    month: 'short',
+    day: 'numeric',
+}).format(new Date(`${dateKey}T00:00:00.000Z`))
+
 /**
  * Admin dashboard orders-over-time chart. Buckets orders into the last
  * `days` daily slots and renders a smooth area chart in brand colors.
@@ -18,17 +25,17 @@ export default function OrdersAreaChart({ allOrders = [], days = 30 }) {
     for (let i = days - 1; i >= 0; i--) {
         const d = new Date(today)
         d.setDate(today.getDate() - i)
-        bucket.set(d.toISOString().slice(0, 10), 0)
+        bucket.set(dayKeyUTC(d), 0)
     }
     for (const order of allOrders) {
         const ts = order.createdAt || order.created_at
         if (!ts) continue
-        const key = new Date(ts).toISOString().slice(0, 10)
+        const key = dayKeyUTC(new Date(ts))
         if (bucket.has(key)) bucket.set(key, bucket.get(key) + 1)
     }
     const chartData = Array.from(bucket.entries()).map(([date, orders]) => ({
         date,
-        label: new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        label: formatChartLabel(date),
         orders,
     }))
 

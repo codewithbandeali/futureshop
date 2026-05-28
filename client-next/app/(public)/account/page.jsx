@@ -8,6 +8,7 @@ import Loading from '@/components/Loading'
 import PageTitle from '@/components/PageTitle'
 import { apiGet } from '@/lib/api'
 import { getStoredUser, isLoggedIn } from '@/lib/auth'
+import { formatDate } from '@/lib/format'
 
 const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
 
@@ -127,9 +128,7 @@ export default function AccountPage() {
                                     </span>
                                 </div>
                                 <p className="text-[color:var(--color-text-3)] text-xs mt-1">
-                                    {recentOrder.created_at
-                                        ? new Date(recentOrder.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-                                        : ''}
+                                    {formatDate(recentOrder.created_at)}
                                 </p>
                                 <p className="mt-3">{recentOrder.items?.length ?? 0} items · {currency}{Number(recentOrder.total ?? 0).toFixed(2)}</p>
                             </div>

@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 const Footer = () => {
-    const year = new Date().getFullYear()
+    const year = new Date().getUTCFullYear()
     return (
         <footer className="bg-[color:var(--color-brand)] text-white mt-20">
             <div className="max-w-7xl mx-auto px-6 py-16 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
