@@ -60,6 +60,9 @@ class ProductController extends Controller
             'brand' => 'required|string',
             'shipping' => 'sometimes|boolean',
             'sku' => 'nullable|string|max:64',
+            'video_url' => 'nullable|url|max:512',
+            'view_360_urls' => 'nullable|array',
+            'view_360_urls.*' => 'url|max:512',
             'thumbnail' => 'sometimes|image|max:5120', // 5 MB
             'images.*' => 'sometimes|image|max:5120',
         ]);
@@ -118,6 +121,9 @@ class ProductController extends Controller
             'brand' => 'sometimes|string',
             'shipping' => 'sometimes|boolean',
             'sku' => 'nullable|string|max:64',
+            'video_url' => 'nullable|url|max:512',
+            'view_360_urls' => 'nullable|array',
+            'view_360_urls.*' => 'url|max:512',
             'thumbnail' => 'sometimes|image|max:5120',
             'images.*' => 'sometimes|image|max:5120',
         ]);

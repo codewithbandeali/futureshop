@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { openMiniCart } from "@/lib/features/cart/cartSlice"
 import { getStoredUser, logout } from "@/lib/auth"
+import MegaMenu from "./MegaMenu"
 import SearchAutocomplete from "./SearchAutocomplete"
 
 const Navbar = () => {
@@ -45,9 +46,9 @@ const Navbar = () => {
                 </Link>
 
                 <div className="hidden md:flex items-center gap-7 text-sm text-[color:var(--color-text-1)]">
-                    <Link href="/" className="hover:text-[color:var(--color-accent)] transition">Home</Link>
-                    <Link href="/shop" className="hover:text-[color:var(--color-accent)] transition">Shop</Link>
-                    {user && <Link href="/orders" className="hover:text-[color:var(--color-accent)] transition">Orders</Link>}
+                    <Link href="/" className="hover:text-[color:var(--color-accent)] transition h-11 inline-flex items-center">Home</Link>
+                    <MegaMenu />
+                    {user && <Link href="/orders" className="hover:text-[color:var(--color-accent)] transition h-11 inline-flex items-center">Orders</Link>}
                 </div>
 
                 <SearchAutocomplete className="hidden lg:block flex-1 max-w-sm" />

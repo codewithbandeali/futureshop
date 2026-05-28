@@ -22,6 +22,8 @@ class Product extends Model
         'sku',
         'colors',
         'options',
+        'video_url',
+        'view_360_urls',
     ];
 
     protected $casts = [
@@ -29,6 +31,7 @@ class Product extends Model
         'price' => 'decimal:2',
         'mrp' => 'decimal:2',
         'options' => 'array',
+        'view_360_urls' => 'array',
     ];
 
 
@@ -45,6 +48,13 @@ class Product extends Model
     public function ratings(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Rating::class);
+    }
+
+    public function questions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProductQuestion::class)
+            ->where('is_published', true)
+            ->latest();
     }
 
     public function getInStockAttribute(): bool

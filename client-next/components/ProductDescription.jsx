@@ -3,6 +3,7 @@
 import { Star } from "lucide-react"
 import { useState } from "react"
 import { formatDate } from "@/lib/format"
+import ProductQA from "./ProductQA"
 
 const ProductDescription = ({ product }) => {
     const [selectedTab, setSelectedTab] = useState('description')
@@ -14,6 +15,7 @@ const ProductDescription = ({ product }) => {
         { key: 'description', label: 'Description' },
         { key: 'specs', label: 'Specifications' },
         { key: 'reviews', label: `Reviews (${reviewCount})` },
+        { key: 'qa', label: 'Q&A' },
     ]
 
     return (
@@ -73,6 +75,9 @@ const ProductDescription = ({ product }) => {
                     </div>
                 </dl>
             )}
+
+            {/* Q&A */}
+            {selectedTab === 'qa' && <ProductQA productId={product.id} />}
 
             {/* Reviews */}
             {selectedTab === 'reviews' && (

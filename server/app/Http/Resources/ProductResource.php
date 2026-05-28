@@ -45,6 +45,10 @@ class ProductResource extends JsonResource
             // Storefront renders a chip-picker per key. See the
             // add_options_to_products_table migration for the contract.
             'options' => $this->options ?? null,
+            'video_url' => $this->video_url,
+            // Sequential frames for the 360° spinner. Null when none uploaded —
+            // the storefront hides the spin toggle in that case.
+            'view_360_urls' => $this->view_360_urls ?: null,
             'images' => $imageUrls,
             'rating' => $this->whenLoaded('ratings', function () {
                 return $this->ratings->map(fn($r) => [

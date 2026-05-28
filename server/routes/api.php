@@ -7,6 +7,7 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductQuestionController;
 use App\Http\Controllers\RatingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +31,7 @@ Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logo
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'getProduct']);
 Route::get('/products/{id}/ratings', [RatingController::class, 'index']);
+Route::get('/products/{id}/questions', [ProductQuestionController::class, 'index']);
 
 // Authenticated customer routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -45,6 +47,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Ratings (write)
     Route::post('/products/{id}/ratings', [RatingController::class, 'store']);
+
+    // Q&A — customer asks a question against a product
+    Route::post('/products/{id}/questions', [ProductQuestionController::class, 'store']);
 
     // Coupons — preview/validate a code against a tentative subtotal
     Route::post('/coupons/preview', [CouponController::class, 'preview']);
@@ -72,4 +77,7 @@ Route::middleware(['auth:sanctum', 'admin', 'log.api.request'])->group(function 
     Route::get('/admin/coupons', [CouponController::class, 'index']);
     Route::post('/admin/coupons', [CouponController::class, 'store']);
     Route::delete('/admin/coupons/{id}', [CouponController::class, 'destroy']);
+
+    // Q&A: admin posts an answer
+    Route::patch('/admin/questions/{id}/answer', [ProductQuestionController::class, 'answer']);
 });

@@ -142,6 +142,27 @@ class ProductSeeder extends Seeder
             'scanner' => $scannerShots,
         ];
 
+        // Demo media — populated by slug. Real catalog content is added by
+        // the shop owner via /admin/products/[id]/edit.
+        //
+        // Apple's "Get to know MacBook Air" demo video is a public
+        // YouTube embed; using it as the seeded value gives a working
+        // "Video" tab on the MacBook Air PDP out-of-the-box. Swap for
+        // any URL in the admin form.
+        $videoBySlug = [
+            'apple-macbook-air-15' => 'https://www.youtube.com/watch?v=hjE_TsHhMP4',
+        ];
+
+        // 360° frames: the seeder doesn't have a real spin set, so we
+        // pre-populate one product (Apple Mac mini) with the pool of its
+        // category's 3 photos as a "preview" — the spinner widget will
+        // render and the drag interaction will work, demonstrating the
+        // feature end-to-end. The shop owner replaces this with a real
+        // 24-72 frame sequence via the admin form.
+        $view360BySlug = [
+            'apple-mac-mini-m2' => $desktopShots,
+        ];
+
         foreach ($items as [$name, $category, $brand, $price, $mrp, $stock, $desc, $imageUrl, $options]) {
             $slug = Str::slug($name);
             $product = Product::updateOrCreate(
@@ -157,12 +178,11 @@ class ProductSeeder extends Seeder
                     'shipping' => true,
                     'sku' => strtoupper(Str::random(8)),
                     'options' => $options,
+                    'video_url' => $videoBySlug[$slug] ?? null,
+                    'view_360_urls' => $view360BySlug[$slug] ?? null,
                 ]
             );
 
-            // Build a 3-image gallery: the curated main shot first, then
-            // up to two alternative photos from the same category pool
-            // (skipping the main so we don't dupe in the gallery strip).
             $pool = $shotsByCategory[$category] ?? [$imageUrl];
             $gallery = collect([$imageUrl])
                 ->concat(collect($pool)->reject(fn($u) => $u === $imageUrl)->take(2)->values())

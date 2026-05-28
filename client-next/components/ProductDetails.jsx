@@ -1,12 +1,33 @@
 'use client'
 
 import { addToCart } from "@/lib/features/cart/cartSlice"
-import { CheckCircle2, CreditCard, Minus, Plus, ShieldCheck, Star, Tag, Truck } from "lucide-react"
+import { CheckCircle2, CreditCard, ImageIcon, Minus, Play, Plus, RotateCcw, ShieldCheck, Star, Tag, Truck } from "lucide-react"
 import Image from "next/image"
 import { useMemo, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import toast from "react-hot-toast"
+import Spinner360 from "./Spinner360"
 import VariantPicker, { defaultVariantSelection } from "./VariantPicker"
+import VideoPlayer from "./VideoPlayer"
+
+function ModeTab({ active, onClick, icon: Icon, children }) {
+    return (
+        <button
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={onClick}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium border transition min-h-[36px] ${
+                active
+                    ? 'border-[color:var(--color-brand)] bg-[color:var(--color-brand)] text-white'
+                    : 'border-[color:var(--color-border)] bg-white text-[color:var(--color-text-2)] hover:border-[color:var(--color-text-3)]'
+            }`}
+        >
+            <Icon size={13} />
+            {children}
+        </button>
+    )
+}
 
 const ProductDetails = ({ product }) => {
     const productId = product.id
@@ -16,9 +37,14 @@ const ProductDetails = ({ product }) => {
     const dispatch = useDispatch()
 
     const images = Array.isArray(product.images) && product.images.length ? product.images : []
+    const view360 = Array.isArray(product.view_360_urls) ? product.view_360_urls.filter(Boolean) : []
+    const has360 = view360.length >= 2
+    const hasVideo = !!product.video_url
     const [mainImage, setMainImage] = useState(images[0])
     const [zoomActive, setZoomActive] = useState(false)
     const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
+    // mediaMode: 'image' (gallery), '360' (spinner), 'video'
+    const [mediaMode, setMediaMode] = useState('image')
 
     // Soft variants — UI state only for now. The selection rides along to
     // the cart toast and gets formatted for the cart line. Per-variant
@@ -82,9 +108,12 @@ const ProductDetails = ({ product }) => {
     return (
         <div className="flex max-lg:flex-col gap-10 xl:gap-16 pb-24 lg:pb-0">
 
-            {/* Gallery — SKILLS.md §5.4. Amazon-style hover zoom on desktop. */}
-            <div className="flex max-sm:flex-col-reverse gap-3 lg:max-w-xl">
-                {images.length > 1 && (
+            {/* Gallery — SKILLS.md §5.4. Image mode has Amazon-style hover
+                zoom; 360° mode swaps in the Spinner360; video mode shows
+                the demo. Mode tabs appear above the main view when the
+                product has any non-image media. */}
+            <div className="flex max-sm:flex-col-reverse gap-3 lg:max-w-xl flex-1">
+                {images.length > 1 && mediaMode === 'image' && (
                     <div className="flex sm:flex-col gap-3">
                         {images.map((image, index) => (
                             <button
@@ -103,25 +132,57 @@ const ProductDetails = ({ product }) => {
                         ))}
                     </div>
                 )}
-                <div
-                    onMouseEnter={() => setZoomActive(true)}
-                    onMouseLeave={() => setZoomActive(false)}
-                    onMouseMove={onZoomMove}
-                    className="flex-1 relative h-[400px] sm:h-[480px] bg-[color:var(--color-surface-2)] rounded-2xl overflow-hidden cursor-zoom-in"
-                >
-                    {mainImage && (
-                        <Image
-                            src={mainImage}
-                            alt={product.name}
-                            fill
-                            sizes="(min-width:1024px) 600px, 100vw"
-                            className="object-cover transition-transform duration-300"
-                            style={zoomActive ? {
-                                transform: 'scale(1.8)',
-                                transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
-                            } : undefined}
-                            priority
-                        />
+
+                <div className="flex-1 min-w-0">
+                    {/* Mode tabs — only render when there's a choice */}
+                    {(has360 || hasVideo) && (
+                        <div className="flex gap-2 mb-3" role="tablist" aria-label="Product media">
+                            <ModeTab active={mediaMode === 'image'} onClick={() => setMediaMode('image')} icon={ImageIcon}>
+                                Photos
+                            </ModeTab>
+                            {has360 && (
+                                <ModeTab active={mediaMode === '360'} onClick={() => setMediaMode('360')} icon={RotateCcw}>
+                                    360° view
+                                </ModeTab>
+                            )}
+                            {hasVideo && (
+                                <ModeTab active={mediaMode === 'video'} onClick={() => setMediaMode('video')} icon={Play}>
+                                    Video
+                                </ModeTab>
+                            )}
+                        </div>
+                    )}
+
+                    {mediaMode === 'image' && (
+                        <div
+                            onMouseEnter={() => setZoomActive(true)}
+                            onMouseLeave={() => setZoomActive(false)}
+                            onMouseMove={onZoomMove}
+                            className="relative h-[400px] sm:h-[480px] bg-[color:var(--color-surface-2)] rounded-2xl overflow-hidden cursor-zoom-in"
+                        >
+                            {mainImage && (
+                                <Image
+                                    src={mainImage}
+                                    alt={product.name}
+                                    fill
+                                    sizes="(min-width:1024px) 600px, 100vw"
+                                    className="object-cover transition-transform duration-300"
+                                    style={zoomActive ? {
+                                        transform: 'scale(1.8)',
+                                        transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                                    } : undefined}
+                                    priority
+                                />
+                            )}
+                        </div>
+                    )}
+
+                    {mediaMode === '360' && has360 && (
+                        <Spinner360 frames={view360} alt={product.name} />
+                    )}
+
+                    {mediaMode === 'video' && hasVideo && (
+                        <VideoPlayer url={product.video_url} title={`${product.name} — demo`} poster={mainImage} />
                     )}
                 </div>
             </div>

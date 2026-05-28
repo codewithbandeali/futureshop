@@ -21,7 +21,14 @@ export default function ProductForm({ product, onSuccess }) {
         brand: product?.brand ?? BRANDS[0],
         sku: product?.sku ?? "",
         shipping: product?.shipping ?? true,
+        video_url: product?.video_url ?? "",
     })
+    // 360° frames are stored as a textarea (one URL per line) for ease
+    // of bulk-pasting from Cloudinary/S3 upload tools. Submitted as
+    // view_360_urls[0], view_360_urls[1], … to Laravel array validation.
+    const [view360Text, setView360Text] = useState(
+        Array.isArray(product?.view_360_urls) ? product.view_360_urls.join('\n') : ''
+    )
     const [thumbnail, setThumbnail] = useState(null)
     const [images, setImages] = useState([])
     const [thumbPreview, setThumbPreview] = useState(product?.images?.[0] ?? null)
@@ -56,6 +63,13 @@ export default function ProductForm({ product, onSuccess }) {
         })
         if (thumbnail) fd.append("thumbnail", thumbnail)
         images.forEach((f, i) => fd.append(`images[${i}]`, f))
+
+        // Parse 360 frame URLs — one per line, blank lines skipped.
+        const frames = view360Text
+            .split('\n')
+            .map(s => s.trim())
+            .filter(Boolean)
+        frames.forEach((url, i) => fd.append(`view_360_urls[${i}]`, url))
 
         try {
             if (isEdit) {
@@ -122,6 +136,40 @@ export default function ProductForm({ product, onSuccess }) {
                 <div className="md:col-span-2 flex items-center gap-2">
                     <input id="shipping" type="checkbox" checked={form.shipping} onChange={set("shipping")} />
                     <label htmlFor="shipping" className="text-sm">Eligible for free shipping over $50</label>
+                </div>
+
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-medium mb-1.5" htmlFor="video_url">
+                        Product video URL
+                    </label>
+                    <input
+                        id="video_url"
+                        type="url"
+                        value={form.video_url}
+                        onChange={set("video_url")}
+                        placeholder="https://youtu.be/… or https://vimeo.com/… or direct .mp4 URL"
+                        className="form-input"
+                    />
+                    <p className="text-xs text-[color:var(--color-text-3)] mt-1">
+                        YouTube, Vimeo, or any direct MP4/WebM URL. Shown as a "Video" tab on the product page.
+                    </p>
+                </div>
+
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-medium mb-1.5" htmlFor="view_360">
+                        360&deg; frame URLs
+                    </label>
+                    <textarea
+                        id="view_360"
+                        rows={6}
+                        value={view360Text}
+                        onChange={(e) => setView360Text(e.target.value)}
+                        placeholder={"One URL per line, in rotation order.\nhttps://res.cloudinary.com/.../frame-01.jpg\nhttps://res.cloudinary.com/.../frame-02.jpg\nhttps://res.cloudinary.com/.../frame-03.jpg\n…"}
+                        className="form-input font-mono text-xs"
+                    />
+                    <p className="text-xs text-[color:var(--color-text-3)] mt-1">
+                        Upload 24-72 sequential frames to Cloudinary (or any host), paste their URLs here in rotation order. The PDP will show a 360&deg; toggle when at least 2 frames are present.
+                    </p>
                 </div>
             </div>
 
