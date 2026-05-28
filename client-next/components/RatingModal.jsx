@@ -1,22 +1,34 @@
 'use client'
 
-import { Star, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Camera, Star, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
-import { apiPost } from '@/lib/api'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/backend'
 
 const RatingModal = ({ ratingModal, setRatingModal }) => {
     const [rating, setRating] = useState(0)
     const [hoverRating, setHoverRating] = useState(0)
     const [review, setReview] = useState('')
+    const [photos, setPhotos] = useState([])
     const [busy, setBusy] = useState(false)
+    const photoInput = useRef(null)
 
-    // Close on Escape — SKILLS.md §11 accessibility
+    // ESC to close — SKILLS.md §11 accessibility
     useEffect(() => {
         const onKey = (e) => { if (e.key === 'Escape') setRatingModal(null) }
         window.addEventListener('keydown', onKey)
         return () => window.removeEventListener('keydown', onKey)
     }, [setRatingModal])
+
+    const onPickPhotos = (e) => {
+        const next = Array.from(e.target.files || [])
+        // Cap at 5 — server validation matches.
+        setPhotos(prev => [...prev, ...next].slice(0, 5))
+    }
+    const removePhoto = (i) => {
+        setPhotos(prev => prev.filter((_, idx) => idx !== i))
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -26,14 +38,32 @@ const RatingModal = ({ ratingModal, setRatingModal }) => {
         }
         if (busy) return
         setBusy(true)
+
+        // Multipart submit so the server can accept the photos[] files. We
+        // don't go through apiPost (which does JSON) — direct fetch keeps
+        // the bearer header but lets the browser set the boundary.
+        const fd = new FormData()
+        fd.append('rating', String(rating))
+        if (review.trim()) fd.append('review', review.trim())
+        photos.forEach((file, i) => fd.append(`photos[${i}]`, file))
+
+        const headers = { Accept: 'application/json' }
+        if (typeof window !== 'undefined') {
+            const token = window.localStorage.getItem('auth_token')
+            if (token) headers.Authorization = `Bearer ${token}`
+        }
+
         try {
-            await apiPost(`/api/products/${ratingModal.productId}/ratings`, {
-                rating,
-                review: review.trim() || null,
+            const res = await fetch(`${API_BASE}/api/products/${ratingModal.productId}/ratings`, {
+                method: 'POST',
+                headers,
+                body: fd,
             })
+            if (!res.ok) throw new Error(`Review POST ${res.status}`)
             toast.success('Review posted')
             setRatingModal(null)
-        } catch {
+        } catch (err) {
+            console.error(err)
             toast.error('Could not save review')
         } finally {
             setBusy(false)
@@ -52,7 +82,7 @@ const RatingModal = ({ ratingModal, setRatingModal }) => {
         >
             <form
                 onSubmit={handleSubmit}
-                className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md relative"
+                className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md relative max-h-[90vh] overflow-y-auto"
             >
                 <button
                     type="button"
@@ -87,18 +117,65 @@ const RatingModal = ({ ratingModal, setRatingModal }) => {
                     ))}
                 </div>
 
+                <label className="block text-sm font-medium mb-1.5" htmlFor="review-text">Review</label>
                 <textarea
+                    id="review-text"
                     className="form-input"
-                    placeholder="Write your review (optional)"
+                    placeholder="What did you like or want to warn other buyers about?"
                     rows={4}
+                    maxLength={2000}
                     value={review}
                     onChange={(e) => setReview(e.target.value)}
                 />
 
+                <div className="mt-4">
+                    <p className="block text-sm font-medium mb-1.5">Photos (optional)</p>
+                    <div className="flex flex-wrap gap-2">
+                        {photos.map((file, i) => (
+                            <div key={i} className="relative size-16 rounded-lg overflow-hidden bg-[color:var(--color-surface-2)]">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={URL.createObjectURL(file)}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => removePhoto(i)}
+                                    aria-label="Remove photo"
+                                    className="absolute top-0.5 right-0.5 size-5 rounded-full bg-black/70 text-white flex items-center justify-center"
+                                >
+                                    <X size={10} />
+                                </button>
+                            </div>
+                        ))}
+                        {photos.length < 5 && (
+                            <button
+                                type="button"
+                                onClick={() => photoInput.current?.click()}
+                                className="size-16 border-2 border-dashed border-[color:var(--color-border)] rounded-lg flex items-center justify-center text-[color:var(--color-text-3)] hover:border-[color:var(--color-brand)] hover:text-[color:var(--color-brand)] transition"
+                            >
+                                <Camera size={18} />
+                            </button>
+                        )}
+                    </div>
+                    <input
+                        ref={photoInput}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={onPickPhotos}
+                        className="sr-only"
+                    />
+                    <p className="text-xs text-[color:var(--color-text-3)] mt-1.5">
+                        Up to 5 photos · 5 MB each
+                    </p>
+                </div>
+
                 <button
                     type="submit"
                     disabled={busy || rating < 1}
-                    className="btn-primary w-full mt-4 disabled:opacity-60"
+                    className="btn-primary w-full mt-5 disabled:opacity-60"
                 >
                     {busy ? 'Posting…' : 'Submit review'}
                 </button>

@@ -49,6 +49,9 @@ class ProductResource extends JsonResource
             // Sequential frames for the 360° spinner. Null when none uploaded —
             // the storefront hides the spin toggle in that case.
             'view_360_urls' => $this->view_360_urls ?: null,
+            // A+ content — ordered array of block objects rendered under
+            // the Description tab. See migration for the shape contract.
+            'aplus_blocks' => $this->aplus_blocks ?: null,
             'images' => $imageUrls,
             'rating' => $this->whenLoaded('ratings', function () {
                 return $this->ratings->map(fn($r) => [

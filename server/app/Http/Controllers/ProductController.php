@@ -63,6 +63,12 @@ class ProductController extends Controller
             'video_url' => 'nullable|url|max:512',
             'view_360_urls' => 'nullable|array',
             'view_360_urls.*' => 'url|max:512',
+            'aplus_blocks' => 'nullable|array',
+            'aplus_blocks.*.type' => 'required_with:aplus_blocks|in:hero,feature,callout,image',
+            'aplus_blocks.*.heading' => 'nullable|string|max:255',
+            'aplus_blocks.*.body' => 'nullable|string|max:2000',
+            'aplus_blocks.*.image' => 'nullable|url|max:512',
+            'aplus_blocks.*.caption' => 'nullable|string|max:255',
             'thumbnail' => 'sometimes|image|max:5120', // 5 MB
             'images.*' => 'sometimes|image|max:5120',
         ]);
@@ -124,6 +130,12 @@ class ProductController extends Controller
             'video_url' => 'nullable|url|max:512',
             'view_360_urls' => 'nullable|array',
             'view_360_urls.*' => 'url|max:512',
+            'aplus_blocks' => 'nullable|array',
+            'aplus_blocks.*.type' => 'required_with:aplus_blocks|in:hero,feature,callout,image',
+            'aplus_blocks.*.heading' => 'nullable|string|max:255',
+            'aplus_blocks.*.body' => 'nullable|string|max:2000',
+            'aplus_blocks.*.image' => 'nullable|url|max:512',
+            'aplus_blocks.*.caption' => 'nullable|string|max:255',
             'thumbnail' => 'sometimes|image|max:5120',
             'images.*' => 'sometimes|image|max:5120',
         ]);

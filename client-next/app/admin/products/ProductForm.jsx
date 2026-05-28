@@ -1,5 +1,5 @@
 'use client'
-import { Upload } from "lucide-react"
+import { ArrowDown, ArrowUp, Plus, Trash2, Upload } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
 import toast from "react-hot-toast"
@@ -29,6 +29,28 @@ export default function ProductForm({ product, onSuccess }) {
     const [view360Text, setView360Text] = useState(
         Array.isArray(product?.view_360_urls) ? product.view_360_urls.join('\n') : ''
     )
+    // A+ content blocks — repeater UI; submitted as aplus_blocks[N][field].
+    const [aplusBlocks, setAplusBlocks] = useState(
+        Array.isArray(product?.aplus_blocks) ? product.aplus_blocks : []
+    )
+    const addAplusBlock = (type) => {
+        setAplusBlocks(prev => [...prev, { type, heading: '', body: '', image: '', caption: '' }])
+    }
+    const updateAplusBlock = (idx, field, value) => {
+        setAplusBlocks(prev => prev.map((b, i) => i === idx ? { ...b, [field]: value } : b))
+    }
+    const moveAplusBlock = (idx, delta) => {
+        setAplusBlocks(prev => {
+            const next = [...prev]
+            const target = idx + delta
+            if (target < 0 || target >= next.length) return prev
+            ;[next[idx], next[target]] = [next[target], next[idx]]
+            return next
+        })
+    }
+    const removeAplusBlock = (idx) => {
+        setAplusBlocks(prev => prev.filter((_, i) => i !== idx))
+    }
     const [thumbnail, setThumbnail] = useState(null)
     const [images, setImages] = useState([])
     const [thumbPreview, setThumbPreview] = useState(product?.images?.[0] ?? null)
@@ -70,6 +92,22 @@ export default function ProductForm({ product, onSuccess }) {
             .map(s => s.trim())
             .filter(Boolean)
         frames.forEach((url, i) => fd.append(`view_360_urls[${i}]`, url))
+
+        // Serialize A+ blocks — skip rows with no meaningful content so
+        // the array stays clean.
+        aplusBlocks.forEach((block, i) => {
+            const meaningful =
+                (block.heading || '').trim() ||
+                (block.body || '').trim() ||
+                (block.image || '').trim() ||
+                (block.caption || '').trim()
+            if (!meaningful) return
+            fd.append(`aplus_blocks[${i}][type]`, block.type)
+            if (block.heading) fd.append(`aplus_blocks[${i}][heading]`, block.heading)
+            if (block.body) fd.append(`aplus_blocks[${i}][body]`, block.body)
+            if (block.image) fd.append(`aplus_blocks[${i}][image]`, block.image)
+            if (block.caption) fd.append(`aplus_blocks[${i}][caption]`, block.caption)
+        })
 
         try {
             if (isEdit) {
@@ -170,6 +208,119 @@ export default function ProductForm({ product, onSuccess }) {
                     <p className="text-xs text-[color:var(--color-text-3)] mt-1">
                         Upload 24-72 sequential frames to Cloudinary (or any host), paste their URLs here in rotation order. The PDP will show a 360&deg; toggle when at least 2 frames are present.
                     </p>
+                </div>
+            </div>
+
+            {/* A+ content blocks — Amazon-style enhanced PDP sections */}
+            <div className="border-t border-[color:var(--color-border)] pt-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-lg">A+ content blocks</h2>
+                        <p className="text-xs text-[color:var(--color-text-3)] mt-0.5">
+                            Rich sections shown under the Description tab. Pick a block type, fill the fields, drag-order with the arrows.
+                        </p>
+                    </div>
+                </div>
+
+                {aplusBlocks.length > 0 && (
+                    <ul className="space-y-3 mb-4">
+                        {aplusBlocks.map((block, idx) => (
+                            <li key={idx} className="bg-white border border-[color:var(--color-border)] rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs uppercase tracking-[0.1em] px-2 py-0.5 rounded-full bg-[color:var(--color-surface-2)] text-[color:var(--color-brand)] font-medium">
+                                            {block.type}
+                                        </span>
+                                        <span className="text-xs text-[color:var(--color-text-3)]">Block {idx + 1}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <button type="button" onClick={() => moveAplusBlock(idx, -1)} disabled={idx === 0}
+                                            aria-label="Move up"
+                                            className="p-1.5 rounded text-[color:var(--color-text-3)] hover:text-[color:var(--color-text-1)] disabled:opacity-30">
+                                            <ArrowUp size={14} />
+                                        </button>
+                                        <button type="button" onClick={() => moveAplusBlock(idx, 1)} disabled={idx === aplusBlocks.length - 1}
+                                            aria-label="Move down"
+                                            className="p-1.5 rounded text-[color:var(--color-text-3)] hover:text-[color:var(--color-text-1)] disabled:opacity-30">
+                                            <ArrowDown size={14} />
+                                        </button>
+                                        <button type="button" onClick={() => removeAplusBlock(idx)}
+                                            aria-label="Remove block"
+                                            className="p-1.5 rounded text-[color:var(--color-text-3)] hover:text-[color:var(--color-accent)]">
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {block.type !== 'image' && (
+                                        <input
+                                            type="text"
+                                            placeholder="Heading"
+                                            value={block.heading || ''}
+                                            onChange={(e) => updateAplusBlock(idx, 'heading', e.target.value)}
+                                            className="form-input sm:col-span-2"
+                                        />
+                                    )}
+                                    {block.type !== 'image' && block.type !== 'callout' && (
+                                        <input
+                                            type="url"
+                                            placeholder="Image URL (optional for hero/feature)"
+                                            value={block.image || ''}
+                                            onChange={(e) => updateAplusBlock(idx, 'image', e.target.value)}
+                                            className="form-input sm:col-span-2 text-xs font-mono"
+                                        />
+                                    )}
+                                    {block.type === 'image' && (
+                                        <>
+                                            <input
+                                                type="url"
+                                                placeholder="Image URL"
+                                                value={block.image || ''}
+                                                onChange={(e) => updateAplusBlock(idx, 'image', e.target.value)}
+                                                className="form-input sm:col-span-2 text-xs font-mono"
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="Caption"
+                                                value={block.caption || ''}
+                                                onChange={(e) => updateAplusBlock(idx, 'caption', e.target.value)}
+                                                className="form-input sm:col-span-2"
+                                            />
+                                        </>
+                                    )}
+                                    {block.type !== 'image' && (
+                                        <textarea
+                                            placeholder="Body copy"
+                                            rows={3}
+                                            value={block.body || ''}
+                                            onChange={(e) => updateAplusBlock(idx, 'body', e.target.value)}
+                                            className="form-input sm:col-span-2"
+                                        />
+                                    )}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                    {[
+                        { type: 'hero', label: 'Hero (image background + headline)' },
+                        { type: 'feature', label: 'Feature (image + text side-by-side)' },
+                        { type: 'callout', label: 'Callout (text only, centered)' },
+                        { type: 'image', label: 'Image (full-width with caption)' },
+                    ].map(opt => (
+                        <button
+                            key={opt.type}
+                            type="button"
+                            onClick={() => addAplusBlock(opt.type)}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium border border-[color:var(--color-border)] rounded-md hover:border-[color:var(--color-brand)] hover:text-[color:var(--color-brand)] transition"
+                        >
+                            <Plus size={12} />
+                            {opt.label}
+                        </button>
+                    ))}
                 </div>
             </div>
 

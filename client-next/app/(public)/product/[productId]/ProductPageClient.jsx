@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useEffect } from "react"
+import FrequentlyBoughtTogether from "@/components/FrequentlyBoughtTogether"
 import ProductDescription from "@/components/ProductDescription"
 import ProductDetails from "@/components/ProductDetails"
 import RecentlyViewed from "@/components/RecentlyViewed"
@@ -32,6 +33,7 @@ export default function ProductPageClient({ product }) {
                 </nav>
 
                 <ProductDetails product={product} />
+                <FrequentlyBoughtTogether anchor={product} />
                 <ProductDescription product={product} />
                 <RelatedProducts product={product} />
                 <RecentlyViewed excludeProductId={product?.id} />

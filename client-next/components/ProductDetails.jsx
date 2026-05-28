@@ -1,8 +1,9 @@
 'use client'
 
 import { addToCart } from "@/lib/features/cart/cartSlice"
-import { CheckCircle2, CreditCard, ImageIcon, Minus, Play, Plus, RotateCcw, ShieldCheck, Star, Tag, Truck } from "lucide-react"
+import { CheckCircle2, CreditCard, ImageIcon, Minus, Play, Plus, RotateCcw, ShieldCheck, Star, Tag, Truck, Zap } from "lucide-react"
 import Image from "next/image"
+import { useRouter as useRouterClient } from "next/navigation"
 import { useMemo, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import toast from "react-hot-toast"
@@ -90,6 +91,17 @@ const ProductDetails = ({ product }) => {
         } else {
             toast.success(`${noun} to cart`)
         }
+    }
+
+    // Buy Now — adds the chosen quantity to the cart without opening the
+    // drawer, then routes straight to checkout. Amazon's "one-click"
+    // equivalent without payment-on-file.
+    const router = useRouterClient()
+    const handleBuyNow = () => {
+        for (let i = 0; i < qty; i++) {
+            dispatch(addToCart({ productId, openDrawer: false }))
+        }
+        router.push('/checkout')
     }
 
     const onZoomMove = (e) => {
@@ -318,6 +330,18 @@ const ProductDetails = ({ product }) => {
                             ? (inCart > 0 ? `Add ${qty} more · ${inCart} in cart` : `Add ${qty > 1 ? qty + ' ' : ''}to cart`)
                             : 'Out of stock'}
                     </button>
+                    {product.inStock && (
+                        <button
+                            type="button"
+                            onClick={handleBuyNow}
+                            disabled={maxAddable === 0}
+                            className="btn-secondary inline-flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                            aria-label="Buy now — skip the cart, go straight to checkout"
+                        >
+                            <Zap size={14} aria-hidden="true" />
+                            Buy now
+                        </button>
+                    )}
                 </div>
 
                 {/* Trust badges */}

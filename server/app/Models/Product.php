@@ -24,6 +24,7 @@ class Product extends Model
         'options',
         'video_url',
         'view_360_urls',
+        'aplus_blocks',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class Product extends Model
         'mrp' => 'decimal:2',
         'options' => 'array',
         'view_360_urls' => 'array',
+        'aplus_blocks' => 'array',
     ];
 
 

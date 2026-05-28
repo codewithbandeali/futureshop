@@ -15,6 +15,13 @@ class Rating extends Model
         'user_id',
         'rating',
         'review',
+        'verified',
+        'photos',
+    ];
+
+    protected $casts = [
+        'verified' => 'boolean',
+        'photos' => 'array',
     ];
 
     public function product(): BelongsTo

@@ -4,6 +4,7 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\ApiRequestController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\CrossSellController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -32,6 +33,7 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'getProduct']);
 Route::get('/products/{id}/ratings', [RatingController::class, 'index']);
 Route::get('/products/{id}/questions', [ProductQuestionController::class, 'index']);
+Route::get('/products/{id}/frequently-bought-together', [CrossSellController::class, 'frequentlyBoughtTogether']);
 
 // Authenticated customer routes
 Route::middleware('auth:sanctum')->group(function () {
