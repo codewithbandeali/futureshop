@@ -54,7 +54,7 @@ The migration plan: build new features in `client-next/`, leave `client/` as a f
    - Admin — `admin@example.com` / `Admin123`
    - Shopper — `user@example.com` / `User1234`
 
-   `ProductSeeder` creates **16 sample products** (laptops, desktops, monitors, tablets, printers, scanners — Apple / Dell / HP / Samsung) with stock, MRP, branded placeholder thumbnails. Real product photos get uploaded later through `/admin/products/new` (Cloudinary).
+   `ProductSeeder` creates **16 sample products** (laptops, desktops, monitors, tablets, printers, scanners — Apple / Dell / HP / Samsung) with stock, MRP, and a per-product Unsplash gallery (3 photos each). No two products in the same category share their main photo. Real product photos get uploaded later through `/admin/products/[id]/edit` (Cloudinary) — gallery URLs in `database/seeders/ProductSeeder.php` are keyed by slug in `$galleries` if you want to swap them before re-seeding.
 
 ### 2.6 Cloudinary (image hosting)
 
@@ -65,6 +65,25 @@ Cloudinary handles image upload, CDN delivery, and automatic format conversion (
 - `ProductController::store/update` upload through this service. Delivered URLs already include the `f_auto,q_auto` transform.
 
 **Security note**: a single `CLOUDINARY_URL` value contains the API secret. Treat it like a password — never commit `.env`, rotate the secret in the Cloudinary dashboard if it leaks (e.g. pasted into chat, screenshot, etc.).
+
+### 2.7 Contact form mail backend
+
+The `/contact` page POSTs to `POST /api/contact`. The controller writes a `contact_messages` row first, then attempts to email the shop owner. The DB row is the durable record — a misconfigured mailer never loses a customer message.
+
+Env vars (`server/.env`):
+
+```
+MAIL_MAILER=log              # writes to storage/logs/laravel.log in dev
+MAIL_FROM_ADDRESS="hello@futureshop.example"
+MAIL_FROM_NAME="${APP_NAME}"
+MAIL_CONTACT_TO="hello@futureshop.example"   # where contact submissions land
+```
+
+For production swap `MAIL_MAILER` to `smtp` (or `ses`, `postmark`, `mailgun`) and add the provider credentials. The mailable (`App\Mail\ContactMessageReceived`) is plain text with `Reply-To` set to the customer, so replies route correctly from any inbox.
+
+Rate limiting: 5 submissions per IP per 10 minutes (`ContactController::store`). 429 returned beyond that. The Next.js form surfaces this as a specific toast.
+
+Admin inbox: `/admin/messages` lists submissions newest-first, with All / Unread filters, a reading pane, mark-read/replied toggles, and Reply (opens the OS mail client pre-populated with quoted body). Backend routes: `GET/PATCH/DELETE /api/admin/contact-messages[/{id}]` under `auth:sanctum + admin`.
 
 5. Start the API:
 

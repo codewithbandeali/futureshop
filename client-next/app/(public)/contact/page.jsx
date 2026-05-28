@@ -3,6 +3,7 @@
 import { Mail, MapPin, Phone } from "lucide-react"
 import { useState } from "react"
 import toast from "react-hot-toast"
+import { apiPost } from "@/lib/api"
 
 export default function ContactPage() {
     const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" })
@@ -10,21 +11,21 @@ export default function ContactPage() {
 
     const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
 
-    const onSubmit = (e) => {
+    const onSubmit = async (e) => {
         e.preventDefault()
         if (busy) return
         setBusy(true)
-        // No mail provider wired yet; cache in localStorage so the
-        // operator can drain on next visit. Replace with /api/contact
-        // when a mail backend (Mailgun, Postmark, SES) lands.
         try {
-            const stored = JSON.parse(window.localStorage.getItem('contact_pending') || '[]')
-            stored.push({ ...form, ts: Date.now() })
-            window.localStorage.setItem('contact_pending', JSON.stringify(stored))
-            toast.success("Message saved. We'll be in touch.")
+            await apiPost('/api/contact', form)
+            toast.success("Message sent. We'll be in touch.")
             setForm({ name: "", email: "", subject: "", message: "" })
-        } catch {
-            toast.error("Couldn't send. Try again later.")
+        } catch (err) {
+            const msg = String(err?.message ?? '')
+            if (msg.includes('429')) {
+                toast.error("Too many submissions. Try again in a few minutes.")
+            } else {
+                toast.error("Couldn't send. Try again later.")
+            }
         } finally {
             setBusy(false)
         }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\ApiRequestController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CrossSellController;
 use App\Http\Controllers\CustomerController;
@@ -27,6 +28,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+
+// Public contact form. Rate-limited inside the controller.
+Route::post('/contact', [ContactController::class, 'store']);
 
 // Public product catalog
 Route::get('/products', [ProductController::class, 'index']);
@@ -82,4 +86,9 @@ Route::middleware(['auth:sanctum', 'admin', 'log.api.request'])->group(function 
 
     // Q&A: admin posts an answer
     Route::patch('/admin/questions/{id}/answer', [ProductQuestionController::class, 'answer']);
+
+    // Contact form inbox
+    Route::get('/admin/contact-messages', [ContactController::class, 'adminIndex']);
+    Route::patch('/admin/contact-messages/{id}', [ContactController::class, 'adminUpdate']);
+    Route::delete('/admin/contact-messages/{id}', [ContactController::class, 'adminDestroy']);
 });

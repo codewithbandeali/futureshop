@@ -49,6 +49,16 @@ export async function apiPut(path, body) {
     return handle(res, path);
 }
 
+export async function apiPatch(path, body) {
+    const res = await fetch(`${API_BASE}${path}`, {
+        method: "PATCH",
+        cache: "no-store",
+        headers: buildHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(body ?? {}),
+    });
+    return handle(res, path);
+}
+
 export async function apiDelete(path) {
     const res = await fetch(`${API_BASE}${path}`, {
         method: "DELETE",

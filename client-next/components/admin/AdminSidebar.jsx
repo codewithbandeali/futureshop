@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Package, Percent, ShoppingBag, Users, Tag } from "lucide-react"
+import { LayoutDashboard, Mail, Package, Percent, ShoppingBag, Users, Tag } from "lucide-react"
 import Link from "next/link"
 
 const AdminSidebar = () => {
@@ -14,6 +14,7 @@ const AdminSidebar = () => {
         { name: 'Customers', href: '/admin/customers', icon: Users },
         { name: 'Categories', href: '/admin/categories', icon: Tag },
         { name: 'Coupons', href: '/admin/coupons', icon: Percent },
+        { name: 'Messages', href: '/admin/messages', icon: Mail },
     ]
 
     return (
