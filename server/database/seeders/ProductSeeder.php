@@ -48,14 +48,17 @@ class ProductSeeder extends Seeder
         $tabletShots = [
             'https://images.unsplash.com/photo-1561154464-82e9adf32764?w=1200&q=85',
             'https://images.unsplash.com/photo-1542751110-97427bbecf20?w=1200&q=85',
+            'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&q=85',
         ];
         $printerShots = [
             'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=1200&q=85',
             'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=1200&q=85',
+            'https://images.unsplash.com/photo-1562408590-e32931084e23?w=1200&q=85',
         ];
         $scannerShots = [
             'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=1200&q=85',
             'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=1200&q=85',
+            'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=1200&q=85',
         ];
 
         // Variant option presets — only populated for products where the
@@ -166,14 +169,17 @@ class ProductSeeder extends Seeder
                 ->values()
                 ->all();
 
-            if ($product->images()->count() === 0) {
-                foreach ($gallery as $url) {
-                    Image::create(['product_id' => $product->id, 'image' => $url]);
-                }
+            // Keep existing seeded products in sync when the gallery changes.
+            // This makes `php artisan db:seed --class=ProductSeeder` enough to
+            // upgrade old 1-image rows to the current 3-image PDP gallery.
+            $product->images()->delete();
+            foreach ($gallery as $url) {
+                Image::create(['product_id' => $product->id, 'image' => $url]);
             }
-            if (!$product->thumbnail) {
-                Thumbnail::create(['product_id' => $product->id, 'thumbnail' => $imageUrl]);
-            }
+            Thumbnail::updateOrCreate(
+                ['product_id' => $product->id],
+                ['thumbnail' => $imageUrl]
+            );
         }
     }
 }

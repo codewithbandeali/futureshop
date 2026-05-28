@@ -77,7 +77,23 @@ class ProductsApiTest extends TestCase
         $this->assertDatabaseHas('products', ['id' => $product->id]);
     }
 
-    public function test_authenticated_user_can_delete_product(): void
+    public function test_authenticated_non_admin_cannot_delete_product(): void
+    {
+        $user = User::factory()->create(['role' => 'user']);
+        $product = Product::create([
+            'name' => 'Test', 'slug' => 'test', 'description' => 'x',
+            'price' => 10, 'stock' => 1, 'category' => 'laptop',
+            'brand' => 'Dell', 'shipping' => true, 'sku' => 'T-1',
+        ]);
+
+        $this->actingAs($user, 'sanctum')
+            ->deleteJson("/api/products/{$product->id}")
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('products', ['id' => $product->id]);
+    }
+
+    public function test_admin_can_delete_product(): void
     {
         $user = User::factory()->create(['role' => 'admin']);
         $product = Product::create([

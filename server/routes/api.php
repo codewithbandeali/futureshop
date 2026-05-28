@@ -54,7 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Admin (auth + log middleware preserved from existing setup)
-Route::middleware(['auth:sanctum', 'log.api.request'])->group(function () {
+Route::middleware(['auth:sanctum', 'admin', 'log.api.request'])->group(function () {
     // Products
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{id}', [ProductController::class, 'update']);

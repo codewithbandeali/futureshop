@@ -56,4 +56,23 @@ class AuthApiTest extends TestCase
             'password_confirmation' => 'abc',
         ])->assertStatus(422);
     }
+
+    public function test_register_ignores_client_supplied_admin_role(): void
+    {
+        $response = $this->postJson('/api/register', [
+            'name' => 'Mallory',
+            'email' => 'mallory@example.com',
+            'password' => 'Password1',
+            'password_confirmation' => 'Password1',
+            'role' => 'admin',
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('user.role', 'user');
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'mallory@example.com',
+            'role' => 'user',
+        ]);
+    }
 }

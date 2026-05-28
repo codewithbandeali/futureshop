@@ -14,8 +14,7 @@ class AuthController extends Controller
 
         $fields = $request->validate([
             'name' => 'required|string',
-            'role' => 'string',
-            'email' => 'required|email',
+            'email' => 'required|email|unique:users,email',
             'password' => [
                 'required',
                 'confirmed',
@@ -28,7 +27,9 @@ class AuthController extends Controller
         $user = new User();
         $user->name = $fields['name'];
         $user->email = $fields['email'];
-        $user->role = $fields['role'] ?? 'user';
+        // Never trust a public registration request to assign privileges.
+        // Admin users should be promoted by a trusted seed/script/admin flow.
+        $user->role = 'user';
         $user->password = bcrypt($fields['password']);
         $user->save();
 
