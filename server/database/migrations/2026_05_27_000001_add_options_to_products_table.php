@@ -25,15 +25,19 @@ class AddOptionsToProductsTable extends Migration
 {
     public function up()
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->json('options')->nullable()->after('colors');
-        });
+        if (! Schema::hasColumn('products', 'options')) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->json('options')->nullable()->after('sku');
+            });
+        }
     }
 
     public function down()
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->dropColumn('options');
-        });
+        if (Schema::hasColumn('products', 'options')) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->dropColumn('options');
+            });
+        }
     }
 }

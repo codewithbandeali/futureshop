@@ -33,8 +33,8 @@ class UploadProductImagesToCloudinary extends Command
     {
         $dryRun = (bool) $this->option('dry-run');
 
-        $images = Image::whereNotLike('image', 'https://res.cloudinary.com/%')->get();
-        $thumbnails = Thumbnail::whereNotLike('thumbnail', 'https://res.cloudinary.com/%')->get();
+        $images = Image::where('image', 'NOT LIKE', 'https://res.cloudinary.com/%')->get();
+        $thumbnails = Thumbnail::where('thumbnail', 'NOT LIKE', 'https://res.cloudinary.com/%')->get();
 
         if ($images->isEmpty() && $thumbnails->isEmpty()) {
             $this->info('Nothing to do — every image already lives on Cloudinary.');
