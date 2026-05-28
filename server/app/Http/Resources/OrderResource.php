@@ -12,12 +12,15 @@ class OrderResource extends JsonResource
             'id' => $this->id,
             'status' => $this->status,
             'subtotal' => (float) $this->subtotal,
+            'discount' => (float) ($this->discount ?? 0),
             'shipping' => (float) $this->shipping,
             'tax' => (float) $this->tax,
             'total' => (float) $this->total,
             'currency' => $this->currency,
             'payment_status' => $this->payment_status,
+            'payment_method' => $this->payment_method,
             'address' => $this->whenLoaded('address'),
+            'coupon_code' => $this->whenLoaded('coupon', fn() => $this->coupon?->code, fn() => null),
             'items' => $this->whenLoaded('items', function () {
                 return $this->items->map(fn($i) => [
                     'id' => $i->id,

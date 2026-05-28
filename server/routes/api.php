@@ -3,6 +3,7 @@
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\ApiRequestController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -45,6 +46,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Ratings (write)
     Route::post('/products/{id}/ratings', [RatingController::class, 'store']);
 
+    // Coupons — preview/validate a code against a tentative subtotal
+    Route::post('/coupons/preview', [CouponController::class, 'preview']);
+
     // Internal
     Route::get('/request-counts', [ApiRequestController::class, 'getRequestCounts']);
 });
@@ -63,4 +67,9 @@ Route::middleware(['auth:sanctum', 'log.api.request'])->group(function () {
     // Customers
     Route::get('/admin/customers', [CustomerController::class, 'index']);
     Route::get('/admin/customers/{id}', [CustomerController::class, 'show']);
+
+    // Coupons CRUD
+    Route::get('/admin/coupons', [CouponController::class, 'index']);
+    Route::post('/admin/coupons', [CouponController::class, 'store']);
+    Route::delete('/admin/coupons/{id}', [CouponController::class, 'destroy']);
 });

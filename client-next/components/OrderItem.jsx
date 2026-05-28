@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { formatDate } from '@/lib/format'
 
 const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
@@ -18,11 +19,16 @@ const OrderItem = ({ order }) => {
     const address = order.address || null
 
     return (
-        <article className="bg-white border border-[color:var(--color-border)] rounded-2xl p-5 mb-4">
+        <article className="bg-white border border-[color:var(--color-border)] rounded-2xl p-5 mb-4 hover:shadow-md transition">
             <header className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-[color:var(--color-border)]">
                 <div>
                     <p className="text-xs text-[color:var(--color-text-3)]">Order</p>
-                    <p className="font-medium">#{order.id}</p>
+                    <Link
+                        href={`/orders/${order.id}`}
+                        className="font-medium text-[color:var(--color-text-1)] hover:text-[color:var(--color-brand)] transition"
+                    >
+                        #{order.id}
+                    </Link>
                     <p className="text-xs text-[color:var(--color-text-3)] mt-1">
                         {formatDate(order.created_at)}
                     </p>

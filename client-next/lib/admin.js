@@ -3,7 +3,7 @@
  * can swap to a real "admin namespace" later (e.g. /api/admin/products) by
  * editing one file instead of every page.
  */
-import { apiGet, apiDelete } from "@/lib/api"
+import { apiGet, apiDelete, apiPost } from "@/lib/api"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/backend"
 
@@ -55,6 +55,24 @@ export async function updateOrderStatus(orderId, status) {
 export async function listCustomers() {
     const res = await apiGet("/api/admin/customers")
     return unwrap(res) || []
+}
+
+// Coupons
+export async function adminListCoupons() {
+    const res = await apiGet("/api/admin/coupons")
+    return Array.isArray(res) ? res : (unwrap(res) || [])
+}
+
+export async function adminCreateCoupon(payload) {
+    return apiPost("/api/admin/coupons", payload)
+}
+
+export async function adminDeleteCoupon(id) {
+    return apiDelete(`/api/admin/coupons/${id}`)
+}
+
+export async function previewCoupon(code, subtotal) {
+    return apiPost("/api/coupons/preview", { code, subtotal })
 }
 
 /**

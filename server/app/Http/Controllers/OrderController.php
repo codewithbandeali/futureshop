@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\OrderResource;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
@@ -94,6 +95,7 @@ class OrderController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'payment_method' => 'nullable|string',
             'currency' => 'nullable|string|size:3',
+            'coupon_code' => 'nullable|string|max:64',
         ]);
 
         return DB::transaction(function () use ($request, $data) {
@@ -129,15 +131,37 @@ class OrderController extends Controller
                 $p->decrement('stock', $item['quantity']);
             }
 
-            $shipping = $subtotal >= 50 ? 0 : 5.99;
-            $tax = round($subtotal * 0.0, 2); // placeholder — wire to a tax provider
-            $total = $subtotal + $shipping + $tax;
+            // Resolve coupon — must be locked too so two simultaneous
+            // checkouts can't both consume the last redemption slot.
+            $coupon = null;
+            $discount = 0.0;
+            if (!empty($data['coupon_code'])) {
+                $coupon = Coupon::where('code', strtoupper($data['coupon_code']))
+                    ->lockForUpdate()
+                    ->first();
+                if ($coupon && $coupon->isCurrentlyRedeemable()) {
+                    $discount = $coupon->discountFor($subtotal);
+                    if ($discount > 0) {
+                        $coupon->increment('usage_count');
+                    } else {
+                        $coupon = null;
+                    }
+                } else {
+                    $coupon = null; // silently drop bad codes — UI validated already
+                }
+            }
+
+            $shipping = ($subtotal - $discount) >= 50 ? 0 : 5.99;
+            $tax = round(($subtotal - $discount) * 0.0, 2); // placeholder
+            $total = max(0, $subtotal - $discount + $shipping + $tax);
 
             $order = Order::create([
                 'user_id' => $request->user()->id,
                 'address_id' => $data['address_id'],
+                'coupon_id' => $coupon?->id,
                 'status' => 'pending',
                 'subtotal' => $subtotal,
+                'discount' => $discount,
                 'shipping' => $shipping,
                 'tax' => $tax,
                 'total' => $total,

@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { listProducts, listOrders } from "@/lib/admin"
 import Loading from "@/components/Loading"
+import OrdersAreaChart from "@/components/OrdersAreaChart"
 
 const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
 
@@ -63,7 +64,20 @@ export default function AdminDashboard() {
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-10">
+            {/* Orders over the last 30 days */}
+            <section className="bg-white border border-[color:var(--color-border)] rounded-xl p-5 mt-8">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-lg">Orders — last 30 days</h2>
+                        <p className="text-xs text-[color:var(--color-text-3)] mt-0.5">
+                            Daily order volume across the shop.
+                        </p>
+                    </div>
+                </div>
+                <OrdersAreaChart allOrders={orders} days={30} />
+            </section>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                 <section className="bg-white border border-[color:var(--color-border)] rounded-xl p-5">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg">Recent orders</h2>

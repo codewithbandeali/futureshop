@@ -1,35 +1,79 @@
 'use client'
+
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
-export default function OrdersAreaChart({ allOrders }) {
-
-    // Group orders by date
-    const ordersPerDay = allOrders.reduce((acc, order) => {
-        const date = new Date(order.createdAt).toISOString().split('T')[0] // format: YYYY-MM-DD
-        acc[date] = (acc[date] || 0) + 1
-        return acc
-    }, {})
-
-    // Convert to a sorted array for Recharts
-    const chartData = Object.entries(ordersPerDay)
-        .map(([date, count]) => ({ date, orders: count }))
-        .sort((a, b) => new Date(a.date) - new Date(b.date))
+/**
+ * Admin dashboard orders-over-time chart. Buckets orders into the last
+ * `days` daily slots and renders a smooth area chart in brand colors.
+ *
+ * Empty/missing data is fine — the chart still draws a flat baseline so
+ * the dashboard layout doesn't shift while the API call is in flight.
+ */
+export default function OrdersAreaChart({ allOrders = [], days = 30 }) {
+    // Build a contiguous day-by-day bucket of the last `days` so the X axis
+    // shows every day even if a day has zero orders. Without this, sparse
+    // data looks visually misleading (one tall spike with no context).
+    const bucket = new Map()
+    const today = new Date()
+    for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(today)
+        d.setDate(today.getDate() - i)
+        bucket.set(d.toISOString().slice(0, 10), 0)
+    }
+    for (const order of allOrders) {
+        const ts = order.createdAt || order.created_at
+        if (!ts) continue
+        const key = new Date(ts).toISOString().slice(0, 10)
+        if (bucket.has(key)) bucket.set(key, bucket.get(key) + 1)
+    }
+    const chartData = Array.from(bucket.entries()).map(([date, orders]) => ({
+        date,
+        label: new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        orders,
+    }))
 
     return (
-        <div className="w-full h-[300px] text-xs">
+        <div className="w-full h-[260px] text-xs">
             <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                         <linearGradient id="ordersFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.35} />
-                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                            <stop offset="5%" stopColor="var(--color-brand)" stopOpacity={0.35} />
+                            <stop offset="95%" stopColor="var(--color-brand)" stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fill: '#94a3b8' }} tickLine={false} axisLine={{ stroke: '#e2e8f0' }} />
-                    <YAxis allowDecimals={false} tick={{ fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12 }} />
-                    <Area type="monotone" dataKey="orders" stroke="#16a34a" strokeWidth={2.5} fill="url(#ordersFill)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+                    <XAxis
+                        dataKey="label"
+                        tick={{ fill: 'var(--color-text-3)', fontSize: 11 }}
+                        tickLine={false}
+                        axisLine={{ stroke: 'var(--color-border)' }}
+                        interval="preserveStartEnd"
+                        minTickGap={20}
+                    />
+                    <YAxis
+                        allowDecimals={false}
+                        tick={{ fill: 'var(--color-text-3)', fontSize: 11 }}
+                        tickLine={false}
+                        axisLine={false}
+                        width={30}
+                    />
+                    <Tooltip
+                        contentStyle={{
+                            borderRadius: 8,
+                            border: '1px solid var(--color-border)',
+                            fontSize: 12,
+                            background: 'white',
+                        }}
+                        labelStyle={{ fontWeight: 600 }}
+                    />
+                    <Area
+                        type="monotone"
+                        dataKey="orders"
+                        stroke="var(--color-brand)"
+                        strokeWidth={2}
+                        fill="url(#ordersFill)"
+                    />
                 </AreaChart>
             </ResponsiveContainer>
         </div>

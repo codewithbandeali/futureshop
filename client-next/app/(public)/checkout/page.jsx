@@ -9,6 +9,8 @@ import { apiGet, apiPost } from "@/lib/api"
 import { isLoggedIn } from "@/lib/auth"
 import { clearCart } from "@/lib/features/cart/cartSlice"
 import { addAddress, setAddresses } from "@/lib/features/address/addressSlice"
+import { previewCoupon } from "@/lib/admin"
+import { Tag, X } from "lucide-react"
 
 const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || "$"
 
@@ -73,8 +75,43 @@ export default function CheckoutPage() {
     }, [cartItems, products])
 
     const subtotal = lineItems.reduce((sum, li) => sum + li.lineTotal, 0)
-    const shipping = subtotal >= 50 ? 0 : 5.99
-    const total = subtotal + shipping
+
+    // Coupon state. `applied` holds the server-validated result (code +
+    // discount amount); `couponInput` is the raw text field.
+    const [couponInput, setCouponInput] = useState("")
+    const [applied, setApplied] = useState(null)
+    const [checkingCoupon, setCheckingCoupon] = useState(false)
+
+    const discount = applied?.discount ?? 0
+    const shipping = (subtotal - discount) >= 50 ? 0 : 5.99
+    const total = Math.max(0, subtotal - discount + shipping)
+
+    const applyCoupon = async (e) => {
+        e?.preventDefault?.()
+        const code = couponInput.trim()
+        if (!code || checkingCoupon) return
+        setCheckingCoupon(true)
+        try {
+            const res = await previewCoupon(code, subtotal)
+            if (res?.valid) {
+                setApplied({ code: res.coupon.code, description: res.coupon.description, discount: Number(res.discount) })
+                toast.success(`Applied ${res.coupon.code}`)
+            } else {
+                toast.error(res?.message || "Invalid code")
+            }
+        } catch (err) {
+            // 422/404 from the server land here; surface the message if present.
+            toast.error("Code can't be applied")
+            setApplied(null)
+        } finally {
+            setCheckingCoupon(false)
+        }
+    }
+
+    const clearCoupon = () => {
+        setApplied(null)
+        setCouponInput("")
+    }
 
     const saveNewAddress = async (e) => {
         e.preventDefault()
@@ -95,14 +132,16 @@ export default function CheckoutPage() {
         if (lineItems.length === 0) { toast.error("Your cart is empty"); return }
         setBusy(true)
         try {
-            await apiPost("/api/orders", {
+            const created = await apiPost("/api/orders", {
                 address_id: selectedAddressId,
                 items: lineItems.map(li => ({ product_id: li.productId, quantity: li.quantity })),
                 currency: "USD",
+                coupon_code: applied?.code,
             })
             dispatch(clearCart())
+            const newId = created?.data?.id ?? created?.id
             toast.success("Order placed!")
-            router.push("/orders")
+            router.push(newId ? `/checkout/success?orderId=${newId}` : "/orders")
         } catch (err) {
             toast.error("Couldn't place order — please try again")
         } finally {
@@ -225,11 +264,61 @@ export default function CheckoutPage() {
                 <aside className="lg:sticky lg:top-24 h-fit">
                     <div className="p-6 border border-[color:var(--color-border)] rounded-md bg-white">
                         <h2 className="text-xl mb-4">Order summary</h2>
+
+                        {/* Coupon */}
+                        <div className="mb-5">
+                            {applied ? (
+                                <div className="flex items-center justify-between gap-2 bg-[color:var(--color-accent-soft)] border border-[color:var(--color-accent)]/30 rounded-md p-2.5 text-xs">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <Tag size={14} className="text-[color:var(--color-accent)] shrink-0" />
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-[color:var(--color-accent)]">{applied.code}</p>
+                                            {applied.description && (
+                                                <p className="text-[color:var(--color-text-2)] truncate">{applied.description}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={clearCoupon}
+                                        aria-label="Remove coupon"
+                                        className="text-[color:var(--color-text-3)] hover:text-[color:var(--color-text-1)] p-1"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <form onSubmit={applyCoupon} className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Coupon code"
+                                        aria-label="Coupon code"
+                                        value={couponInput}
+                                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                                        className="form-input !py-2 !text-sm flex-1 uppercase tracking-wide"
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={checkingCoupon || !couponInput.trim()}
+                                        className="btn-secondary !py-2 !px-4 text-sm disabled:opacity-50"
+                                    >
+                                        {checkingCoupon ? '…' : 'Apply'}
+                                    </button>
+                                </form>
+                            )}
+                        </div>
+
                         <dl className="space-y-2 text-sm">
                             <div className="flex justify-between">
                                 <dt>Subtotal</dt>
                                 <dd>{currency}{subtotal.toFixed(2)}</dd>
                             </div>
+                            {discount > 0 && (
+                                <div className="flex justify-between text-[color:var(--color-accent)]">
+                                    <dt>Discount{applied?.code ? ` · ${applied.code}` : ''}</dt>
+                                    <dd>-{currency}{discount.toFixed(2)}</dd>
+                                </div>
+                            )}
                             <div className="flex justify-between">
                                 <dt>Delivery</dt>
                                 <dd>{shipping === 0 ? "FREE" : `${currency}${shipping.toFixed(2)}`}</dd>
